@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mis Finanzas">
+<meta name="theme-color" content="#0f172a">
+<title>Mis Finanzas 2025</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"Mis Finanzas 2025","short_name":"Finanzas","start_url":".","display":"standalone","background_color":"%230f172a","theme_color":"%230f172a","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%233b82f6%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>%E2%82%AC</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--bg4:#475569;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --green:#10b981;--green2:rgba(16,185,129,0.15);
+  --red:#f43f5e;--red2:rgba(244,63,94,0.15);
+  --blue:#3b82f6;--blue2:rgba(59,130,246,0.15);
+  --amber:#f59e0b;--amber2:rgba(245,158,11,0.15);
+  --purple:#8b5cf6;--teal:#14b8a6;--orange:#f97316;
+  --fijo:#8b5cf6;--fijo2:rgba(139,92,246,0.15);
+  --variable:#f97316;--variable2:rgba(249,115,22,0.15);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --radius:14px;--radius-sm:8px;--radius-xs:6px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;overflow-x:hidden}
+.nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 2px 7px;gap:3px;background:none;border:none;color:var(--text3);font-size:9px;cursor:pointer;transition:color .2s}
+.nav-btn.active{color:var(--blue)}
+.nav-btn svg{width:19px;height:19px}
+.page{display:none;padding:14px 14px 88px;min-height:100vh;max-width:600px;margin:0 auto}
+.page.active{display:block}
+.hdr{padding:16px 0 6px}
+.hdr h1{font-size:21px;font-weight:700;letter-spacing:-0.5px}
+.hdr p{font-size:12px;color:var(--text2);margin-top:2px}
+.card{background:var(--bg2);border-radius:var(--radius);padding:15px;border:1px solid var(--border);margin-bottom:11px}
+.card-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:11px}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.kpi{background:var(--bg2);border-radius:var(--radius);padding:12px 14px;border:1px solid var(--border)}
+.kpi .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.kpi .val{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.kpi .sub{font-size:10px;color:var(--text3);margin-top:2px}
+.g{color:var(--green)}.r{color:var(--red)}.b{color:var(--blue)}.a{color:var(--amber)}
+.fijo-c{color:var(--fijo)}.var-c{color:var(--variable)}
+.saldo-hero{text-align:center;padding:18px 0 12px}
+.saldo-hero .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.saldo-hero .amount{font-size:36px;font-weight:800;letter-spacing:-1.5px}
+.chart-wrap{position:relative}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.note{font-size:11px;color:var(--amber);background:var(--amber2);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-xs);padding:7px 10px;margin-bottom:10px}
+.tab-row{display:flex;gap:5px;margin-bottom:11px}
+.tab-btn{flex:1;background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text2);font-size:13px;padding:8px;cursor:pointer;font-weight:500}
+.tab-btn.active{background:var(--blue);color:#fff}
+.search-wrap{position:relative;margin-bottom:9px}
+.search-wrap input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;padding:10px 14px 10px 38px;outline:none}
+.search-wrap input::placeholder{color:var(--text3)}
+.s-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.filter-row{display:flex;gap:8px;margin-bottom:9px}
+.filter-row select{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:8px 10px;outline:none}
+.mstrip{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-bottom:11px;-ms-overflow-style:none;scrollbar-width:none}
+.mstrip::-webkit-scrollbar{display:none}
+.m-btn{flex-shrink:0;background:var(--bg3);border:none;border-radius:20px;color:var(--text2);font-size:12px;padding:5px 12px;cursor:pointer;white-space:nowrap}
+.m-btn.active{background:var(--blue);color:#fff}
+.tx-list{display:flex;flex-direction:column;gap:2px}
+.tx{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--radius-sm);background:var(--bg3);position:relative}
+.tx.manual::after{content:'M';position:absolute;top:3px;right:5px;font-size:8px;font-weight:700;color:var(--amber);background:var(--amber2);border-radius:3px;padding:1px 4px}
+.tx-icon{width:33px;height:33px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.tx-body{flex:1;min-width:0}
+.tx-desc{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx-meta{font-size:11px;color:var(--text3);margin-top:2px;display:flex;gap:6px;align-items:center}
+.tx-tipo{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:.3px}
+.tt-fijo{background:var(--fijo2);color:var(--fijo)}
+.tt-var{background:var(--variable2);color:var(--variable)}
+.tx-amt{text-align:right;flex-shrink:0}
+.tx-amt .amt{font-size:14px;font-weight:700}
+.tx-amt .saldo{font-size:10px;color:var(--text3);margin-top:1px}
+.pager{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--border)}
+.pager button{background:var(--bg3);border:none;border-radius:var(--radius-sm);color:var(--text2);padding:6px 16px;font-size:13px;cursor:pointer}
+.pager button:disabled{opacity:.3}
+.pager .pinfo{font-size:12px;color:var(--text3)}
+.prog-bar{height:4px;background:var(--bg3);border-radius:3px;margin-top:5px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s}
+.row-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.row-item:last-child{border-bottom:none}
+.ri-left{flex:1;min-width:0}
+.ri-name{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.ri-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.ri-amt{font-size:13px;font-weight:700;flex-shrink:0;margin-left:10px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-handle{width:38px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 14px}
+.modal h2{font-size:17px;font-weight:700;margin-bottom:14px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:11px;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:15px;padding:11px 13px;outline:none;-webkit-appearance:none}
+.form-group textarea{resize:none;height:60px;font-family:inherit}
+.form-group input:focus,.form-group select:focus{border-color:var(--blue)}
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.type-btn{padding:11px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;color:var(--text2);font-size:14px;font-weight:600;cursor:pointer}
+.type-btn.active-g{border-color:var(--red);background:var(--red2);color:var(--red)}
+.type-btn.active-i{border-color:var(--green);background:var(--green2);color:var(--green)}
+.btn-submit{width:100%;padding:14px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.btn-cancel{width:100%;padding:11px;background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-size:14px;cursor:pointer;margin-top:6px}
+.fab{position:fixed;right:18px;bottom:calc(68px + env(safe-area-inset-bottom,0px));width:50px;height:50px;border-radius:50%;background:var(--blue);border:none;color:#fff;font-size:25px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(59,130,246,0.4);cursor:pointer;z-index:90}
+.fab:active{transform:scale(.93)}
+.fc-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:11px}
+.fc-card{background:var(--bg3);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.fc-card .fc-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.fc-card .fc-val{font-size:14px;font-weight:700}
+.fc-section-title{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin:13px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.fc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border)}
+.fc-row:last-child{border-bottom:none}
+.fc-row .fc-name{font-size:13px;color:var(--text)}
+.fc-row .fc-fixed{font-size:9px;color:var(--amber);background:var(--amber2);border-radius:3px;padding:1px 5px;margin-left:5px}
+.fc-row .fc-amt{font-size:13px;font-weight:600;color:var(--red)}
+.saving-hero{background:var(--green2);border:1px solid rgba(16,185,129,0.25);border-radius:var(--radius);padding:14px;text-align:center;margin-bottom:11px}
+.saving-hero .sh-lbl{font-size:11px;color:var(--green);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.saving-hero .sh-val{font-size:26px;font-weight:800;color:var(--green)}
+.saving-hero .sh-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.del-btn{background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;padding:4px 6px;flex-shrink:0}
+.del-btn:hover{color:var(--red)}
+.export-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:5px}
+/* RANGE FILTER (Análisis page) */
+.range-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+.range-btn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:12px;padding:8px;cursor:pointer;text-align:center}
+.range-btn.active{background:var(--blue2);border-color:var(--blue);color:var(--blue)}
+.cmp-row{display:flex;background:var(--bg3);border-radius:var(--radius-sm);overflow:hidden;height:32px;margin-bottom:6px}
+.cmp-fijo{background:var(--fijo);color:#fff;display:flex;align-items:center;justify-content:flex-start;padding:0 8px;font-size:11px;font-weight:700;transition:width .6s}
+.cmp-var{background:var(--variable);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding:0 8px;font-size:11px;font-weight:700;transition:width .6s}
+.cmp-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:11px}
+.tipo-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.tipo-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:13px}
+.tipo-card.fijo{border-left:3px solid var(--fijo)}
+.tipo-card.variable{border-left:3px solid var(--variable)}
+.tipo-card .t-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.tipo-card .t-val{font-size:19px;font-weight:700}
+.tipo-card .t-sub{font-size:10px;color:var(--text3);margin-top:2px}
+
+
+/* CONFIG PAGE */
+.config-section{padding:14px 0;border-bottom:1px solid var(--border)}
+.config-section:last-child{border-bottom:none}
+.config-section h3{font-size:13px;font-weight:600;margin-bottom:6px}
+.config-section p{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px}
+.config-btn{width:100%;padding:11px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.config-btn.sec{background:var(--bg3);color:var(--text2);border:1px solid var(--border2)}
+.config-btn.danger{background:var(--red2);color:var(--red);border:1px solid rgba(244,63,94,0.3)}
+.config-btn:active{opacity:.8}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--bg2);color:var(--text);padding:12px 20px;border-radius:var(--radius);border:1px solid var(--border2);font-size:13px;z-index:300;opacity:0;transition:all .3s;max-width:90%}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+.import-stat{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--border)}
+.import-stat:last-child{border-bottom:none}
+.import-stat span:last-child{color:var(--text);font-weight:600}
+.file-input{display:none}
+.last-update{font-size:11px;color:var(--text3);margin-top:6px;text-align:center}
+
+/* ACTION TRACKING */
+.action-track{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.track-bar-wrap{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:6px}
+.track-bar{height:100%;border-radius:3px;transition:width .5s}
+.track-bar.green{background:var(--green)}
+.track-bar.amber{background:var(--amber)}
+.track-bar.red{background:var(--red)}
+.track-bar.gray{background:var(--text3)}
+.track-stats{display:flex;justify-content:space-between;font-size:11px;margin-top:5px}
+.track-spent.green{color:var(--green)}
+.track-spent.amber{color:var(--amber)}
+.track-spent.red{color:var(--red)}
+.track-spent.gray{color:var(--text3)}
+.track-limit{color:var(--text3)}
+.track-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px}
+.tb-green{background:var(--green2);color:var(--green)}
+.tb-amber{background:var(--amber2);color:var(--amber)}
+.tb-red{background:var(--red2);color:var(--red)}
+.tb-gray{background:var(--bg3);color:var(--text3)}
+.limit-note{font-size:11px;color:var(--text3);margin-top:3px;font-style:italic}
+/* SAVINGS PLAN */
+.plan-toggle{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.plan-btn{padding:11px 6px;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;text-align:center}
+.plan-btn .pb-emoji{font-size:18px;display:block;margin-bottom:3px}
+.plan-btn.active-soft{border-color:var(--green);background:var(--green2);color:var(--green)}
+.plan-btn.active-mod{border-color:var(--amber);background:var(--amber2);color:var(--amber)}
+.plan-btn.active-agr{border-color:var(--red);background:var(--red2);color:var(--red)}
+.plan-hero{border-radius:var(--radius);padding:18px;text-align:center;margin-bottom:11px;border:1px solid}
+.plan-hero.soft{background:var(--green2);border-color:rgba(16,185,129,0.3)}
+.plan-hero.mod{background:var(--amber2);border-color:rgba(245,158,11,0.3)}
+.plan-hero.agr{background:var(--red2);border-color:rgba(244,63,94,0.3)}
+.plan-hero .ph-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;font-weight:600}
+.plan-hero .ph-val{font-size:32px;font-weight:800;letter-spacing:-1px}
+.plan-hero .ph-sub{font-size:12px;margin-top:5px;opacity:.85}
+.action-row{display:flex;align-items:center;gap:11px;padding:11px;background:var(--bg3);border-radius:var(--radius-sm);margin-bottom:7px}
+.action-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg4)}
+.action-body{flex:1;min-width:0}
+.action-name{font-size:13px;font-weight:600;color:var(--text)}
+.action-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.action-amt{font-size:14px;font-weight:700;color:var(--green);flex-shrink:0;text-align:right}
+.action-amt small{display:block;font-size:10px;color:var(--text3);font-weight:500}
+.diag-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.diag-row:last-child{border-bottom:none}
+.diag-name{flex:1;font-size:13px;color:var(--text)}
+.diag-amt{font-size:13px;font-weight:700;color:var(--text2)}
+.diag-bar-wrap{flex:1.5;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:0 8px}
+.diag-bar{height:100%;background:var(--variable);border-radius:3px}
+.timeline{margin-top:8px}
+.tl-step{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)}
+.tl-step:last-child{border-bottom:none}
+.tl-num{width:28px;height:28px;border-radius:50%;background:var(--blue2);color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.tl-body{flex:1}
+.tl-title{font-size:13px;font-weight:600;margin-bottom:3px}
+.tl-desc{font-size:12px;color:var(--text2);line-height:1.4}
+.proj-card{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.proj-item{background:var(--bg3);border-radius:var(--radius-sm);padding:11px}
+.proj-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.proj-val{font-size:17px;font-weight:700;color:var(--green)}
+.proj-sub{font-size:10px;color:var(--text3);margin-top:1px}
+</style>
+</head>
+<body>
+
+<!-- ═══ PAGE: RESUMEN ═══ -->
+<div class="page active" id="pg-resumen">
+  <div class="hdr"><h1>Mis Finanzas</h1><p>Resumen 2025</p></div>
+  <div class="saldo-hero">
+    <div class="lbl">Saldo actual</div>
+    <div class="amount" id="saldo-display"></div>
+  </div>
+  <div class="kpi-grid" id="kpi-grid"></div>
+  <button class="config-btn sec" style="margin-bottom:12px" onclick="goPageById('prev')">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Ver previsión y ahorro estimado
+  </button>
+  <div class="card">
+    <div class="card-title">Evolución del saldo</div>
+    <div class="note">⚠ Ago incluye compraventa de vivienda (215.000 €)</div>
+    <div class="chart-wrap" style="height:140px"><canvas id="cSaldo" role="img" aria-label="Saldo 2025"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Ingresos vs Gastos mensuales</div>
+    <div class="note">⚠ Jul/Ago escalados — máx. visible: 15.000 €</div>
+    <div class="chart-wrap" style="height:180px"><canvas id="cMensual" role="img" aria-label="Ingresos y gastos mensuales"></canvas></div>
+    <div class="legend">
+      <div class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Ingresos</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#f43f5e"></span>Gastos</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: ANÁLISIS FIJO/VARIABLE ═══ -->
+<div class="page" id="pg-analisis">
+  <div class="hdr"><h1>Análisis F/V</h1><p>Gastos fijos vs variables</p></div>
+
+  <div class="card">
+    <div class="card-title">Periodo</div>
+    <div class="range-grid" id="rangeGrid"></div>
+  </div>
+
+  <div class="tipo-summary">
+    <div class="tipo-card fijo">
+      <div class="t-lbl">Fijos</div>
+      <div class="t-val fijo-c" id="tot-fijo">—</div>
+      <div class="t-sub" id="pct-fijo">—</div>
+    </div>
+    <div class="tipo-card variable">
+      <div class="t-lbl">Variables</div>
+      <div class="t-val var-c" id="tot-var">—</div>
+      <div class="t-sub" id="pct-var">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Comparativa proporcional</div>
+    <div class="cmp-row">
+      <div class="cmp-fijo" id="cmpFijo">F</div>
+      <div class="cmp-var" id="cmpVar">V</div>
+    </div>
+    <div class="cmp-labels">
+      <span><span class="leg-dot" style="background:var(--fijo);display:inline-block;margin-right:4px"></span>Fijo</span>
+      <span><span class="leg-dot" style="background:var(--variable);display:inline-block;margin-right:4px"></span>Variable</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Acumulado mensual</div>
+    <div class="chart-wrap" style="height:200px"><canvas id="cAcumulado" role="img" aria-label="Acumulado fijos vs variables"></canvas></div>
+    <div class="legend">
+      <div class="leg-item"><span class="leg-dot" style="background:#8b5cf6"></span>Fijos</div>
+      <div class="leg-item"><span class="leg-dot" style="background:#f97316"></span>Variables</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Categorías fijas en el periodo</div>
+    <div id="bars-fijo"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Categorías variables en el periodo</div>
+    <div id="bars-var"></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: PREVISIÓN ═══ -->
+<div class="page" id="pg-prev">
+  <div class="hdr"><h1>Previsión</h1><p>Próximo mes estimado</p></div>
+  <div class="saving-hero">
+    <div class="sh-lbl">Capacidad de ahorro estimada</div>
+    <div class="sh-val" id="fc-saving"></div>
+    <div class="sh-sub" id="fc-saving-sub"></div>
+  </div>
+  <div class="fc-summary" id="fc-summary"></div>
+  <div class="card">
+    <div class="card-title">Previsión de gastos por categoría</div>
+    <div class="chart-wrap" style="height:210px"><canvas id="cForecast" role="img" aria-label="Previsión gastos"></canvas></div>
+  </div>
+  <div class="card" id="fc-detail">
+    <div class="card-title">Desglose previsto</div>
+    <div class="fc-section-title">Gastos fijos detectados</div>
+    <div id="fc-fixed-list"></div>
+    <div class="fc-section-title">Gastos variables estimados</div>
+    <div id="fc-var-list"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Evolución del ahorro mensual</div>
+    <div class="chart-wrap" style="height:155px"><canvas id="cSaving" role="img" aria-label="Ahorro mensual"></canvas></div>
+  </div>
+</div>
+
+<!-- ═══ PAGE: MOVIMIENTOS ═══ -->
+<div class="page" id="pg-mov">
+  <div class="hdr" style="display:flex;align-items:center;justify-content:space-between">
+    <div><h1>Movimientos</h1><p id="mov-count">564 transacciones</p></div>
+    <button class="export-btn" onclick="exportCSV()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV
+    </button>
+  </div>
+  <div class="search-wrap">
+    <span class="s-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+    <input type="search" id="search" placeholder="Buscar...">
+  </div>
+  <div class="filter-row">
+    <select id="fCat"><option value="">Todas categorías</option></select>
+    <select id="fTipo"><option value="">Todos</option><option value="i">Ingresos</option><option value="g">Gastos</option></select>
+    <select id="fFV"><option value="">Fijo y Variable</option><option>Fijo</option><option>Variable</option></select>
+  </div>
+  <div class="mstrip" id="mstrip"></div>
+  <div class="tx-list" id="txList"></div>
+  <div class="pager">
+    <button id="pPrev" disabled>‹</button>
+    <span class="pinfo" id="pInfo"></span>
+    <button id="pNext">›</button>
+  </div>
+</div>
+
+
+<!-- ═══ PAGE: PLAN DE AHORRO ═══ -->
+<div class="page" id="pg-plan">
+  <div class="hdr"><h1>Plan de ahorro</h1><p>Plan adaptado a tu situación real</p></div>
+
+  <div class="card" style="background:var(--blue2);border-color:rgba(59,130,246,0.25)">
+    <div class="card-title" style="color:var(--blue)">🎯 Tu situación actual</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+      <div><div style="color:var(--text3);font-size:10px;text-transform:uppercase">Nómina mensual</div><div style="font-weight:700;font-size:14px">2.184,73 €</div></div>
+      <div><div style="color:var(--text3);font-size:10px;text-transform:uppercase">Ya ahorras (inversión)</div><div style="font-weight:700;font-size:14px;color:var(--green)">400 €/mes ✓</div></div>
+      <div><div style="color:var(--text3);font-size:10px;text-transform:uppercase">Cuenta común planeada</div><div style="font-weight:700;font-size:14px;color:var(--blue)">430 €/mes</div></div>
+      <div><div style="color:var(--text3);font-size:10px;text-transform:uppercase">Disponible para más ahorro</div><div style="font-weight:700;font-size:14px" id="availableSave">—</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-top:10px;line-height:1.5">
+      La <strong>cuenta común</strong> cubrirá luz, agua, y gastos de pareja (supermercados conjuntos, restaurantes, etc.), liberando parte de tus variables personales. Tu objetivo es <strong>ahorrar más allá de los 400 € ya invertidos</strong>.
+    </div>
+  </div>
+
+  <div class="plan-toggle">
+    <button class="plan-btn active-soft" id="plnSoft" onclick="setPlan('soft')"><span class="pb-emoji">🟢</span>Suave</button>
+    <button class="plan-btn" id="plnMod" onclick="setPlan('mod')"><span class="pb-emoji">🟡</span>Moderado</button>
+    <button class="plan-btn" id="plnAgr" onclick="setPlan('agr')"><span class="pb-emoji">🔴</span>Agresivo</button>
+  </div>
+
+  <div class="plan-hero soft" id="planHero">
+    <div class="ph-lbl" id="phLbl">Ahorro mensual estimado</div>
+    <div class="ph-val" id="phVal">120 €</div>
+    <div class="ph-sub" id="phSub">1.440 € al año</div>
+  </div>
+
+  <div class="proj-card">
+    <div class="proj-item"><div class="proj-lbl">A 6 meses</div><div class="proj-val" id="proj6">720 €</div><div class="proj-sub">Colchón inicial</div></div>
+    <div class="proj-item"><div class="proj-lbl">A 12 meses</div><div class="proj-val" id="proj12">1.440 €</div><div class="proj-sub">Fondo emergencia</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Acciones del plan</div>
+    <div id="actionList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Diagnóstico — gastos variables actuales</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Media mensual real (excluye operación inmobiliaria)</div>
+    <div id="diagList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Estrategia recomendada</div>
+    <div class="timeline">
+      <div class="tl-step"><div class="tl-num">1</div><div class="tl-body"><div class="tl-title">Mes 1–2: Plan Suave</div><div class="tl-desc">Empieza con cambios pequeños, observa qué funciona en tu día a día.</div></div></div>
+      <div class="tl-step"><div class="tl-num">2</div><div class="tl-body"><div class="tl-title">Mes 3–6: Sube a Moderado</div><div class="tl-desc">Si el plan suave es viable, da el salto. ~250 €/mes ahorrados.</div></div></div>
+      <div class="tl-step"><div class="tl-num">3</div><div class="tl-body"><div class="tl-title">Automatiza</div><div class="tl-desc">Transferencia automática al ahorro el día que cobras la nómina.</div></div></div>
+      <div class="tl-step"><div class="tl-num">4</div><div class="tl-body"><div class="tl-title">Dónde meterlo</div><div class="tl-desc">Cuenta remunerada (2-3% TAE) o fondo monetario para empezar.</div></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Comparativa anual de ahorro</div>
+    <div class="chart-wrap" style="height:160px"><canvas id="cPlanCmp" role="img" aria-label="Comparativa anual de ahorro entre planes"></canvas></div>
+  </div>
+</div>
+
+
+<!-- ═══ PAGE: CONFIG ═══ -->
+<div class="page" id="pg-config">
+  <div class="hdr"><h1>Configuración</h1><p>Datos y app</p></div>
+
+  <div class="card">
+    <div class="card-title">Importar datos del banco</div>
+    <div class="config-section">
+      <h3>📥 Cargar Excel del banco</h3>
+      <p>Sube el archivo <code style="background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px">.xlsx/.xlsm</code> exportado de Ibercaja. Se leerá la hoja <strong>"Tabla actualizada"</strong> y se reemplazarán los datos del banco. Tus movimientos manuales se conservan.</p>
+      <input type="file" id="fileExcel" class="file-input" accept=".xlsx,.xlsm,.xls" onchange="handleExcelImport(event)">
+      <button class="config-btn" onclick="document.getElementById('fileExcel').click()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Seleccionar archivo Excel
+      </button>
+      <div class="last-update" id="lastUpdate"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Movimientos manuales</div>
+    <div class="config-section">
+      <h3>📤 Exportar a CSV</h3>
+      <p>Descarga todos tus movimientos manuales como archivo CSV.</p>
+      <button class="config-btn sec" onclick="exportCSV()">Descargar CSV</button>
+    </div>
+    <div class="config-section">
+      <h3>💾 Backup completo (JSON)</h3>
+      <p>Guarda un respaldo de todos tus movimientos manuales. Útil antes de borrar datos del navegador.</p>
+      <button class="config-btn sec" onclick="exportBackup()">Descargar backup</button>
+    </div>
+    <div class="config-section">
+      <h3>♻️ Restaurar backup</h3>
+      <p>Carga un backup previo. Reemplaza los movimientos manuales actuales.</p>
+      <input type="file" id="fileBackup" class="file-input" accept=".json" onchange="importBackup(event)">
+      <button class="config-btn sec" onclick="document.getElementById('fileBackup').click()">Cargar backup JSON</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Instalar como app</div>
+    <div class="config-section">
+      <p style="margin-bottom:8px"><strong>iPhone (Safari):</strong> Pulsa el botón compartir → "Añadir a pantalla de inicio".</p>
+      <p><strong>Android (Chrome):</strong> Menú ⋮ → "Añadir a pantalla de inicio" o "Instalar app".</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Zona de peligro</div>
+    <div class="config-section">
+      <h3>🗑 Borrar movimientos manuales</h3>
+      <p>Elimina todos los movimientos añadidos a mano. No afecta a los datos del banco.</p>
+      <button class="config-btn danger" onclick="deleteAllManual()">Borrar todo</button>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" onclick="openModal()">+</button>
+
+<div id="toast" class="toast"></div>
+<nav class="nav">
+  <button class="nav-btn active" onclick="goPage('resumen',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Resumen
+  </button>
+  <button class="nav-btn" onclick="goPage('analisis',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+    Análisis
+  </button>
+  <button class="nav-btn" onclick="goPage('plan',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Plan
+  </button>
+  <button class="nav-btn" onclick="goPage('mov',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    Movim.
+  </button>
+  <button class="nav-btn" onclick="goPage('config',this)">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Config
+  </button>
+</nav>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <h2>Nuevo movimiento</h2>
+    <div class="type-toggle">
+      <button class="type-btn active-g" id="btnGasto" onclick="setType('g')">📤 Gasto</button>
+      <button class="type-btn" id="btnIngreso" onclick="setType('i')">📥 Ingreso</button>
+    </div>
+    <div class="form-group">
+      <label>Importe (€)</label>
+      <input type="number" id="mImporte" placeholder="0,00" step="0.01" min="0" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label>Descripción</label>
+      <input type="text" id="mDesc" placeholder="Descripción del movimiento">
+    </div>
+    <div class="form-group">
+      <label>Categoría</label>
+      <select id="mCat"></select>
+    </div>
+    <div class="form-group">
+      <label>Tipo</label>
+      <select id="mTipoFV"><option>Variable</option><option>Fijo</option></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="form-group"><label>Fecha</label><input type="date" id="mFecha"></div>
+      <div class="form-group"><label>Hora</label><input type="time" id="mHora"></div>
+    </div>
+    <div class="form-group"><label>Nota (opcional)</label><textarea id="mNota" placeholder="Añade una nota..."></textarea></div>
+    <button class="btn-submit" onclick="saveMovimiento()">Guardar movimiento</button>
+    <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+// ═══ DATA ════════════════════════════════════════════════
+const BANK_ROWS = [{"Fecha_Op": "05/12/2025", "Ingreso": 0.0, "Gasto": 7.5, "Saldo": 7543.91, "Desc": "BAR PLAZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/12/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 7551.41, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "03/12/2025", "Ingreso": 0.0, "Gasto": 31.62, "Saldo": 7571.41, "Desc": "Glovo 04DEC Z1UQJ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/12/2025", "Ingreso": 0.0, "Gasto": 37.2, "Saldo": 7644.13, "Desc": "FERRETERIA ARIES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/12/2025", "Ingreso": 350.0, "Gasto": 0.0, "Saldo": 7681.33, "Desc": "ALBERTO CARCELLER ORTEGA NOTPROVIDE", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "02/12/2025", "Ingreso": 0.0, "Gasto": 242.45, "Saldo": 7331.33, "Desc": "COREC.P. MARTIN CORTES 19", "Categoria": "Comunidad", "Tipo": "Fijo"}, {"Fecha_Op": "02/12/2025", "Ingreso": 0.0, "Gasto": 41.1, "Saldo": 7603.03, "Desc": "VAPERLOWCOST", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/12/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 7573.78, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "01/12/2025", "Ingreso": 2184.73, "Gasto": 0.0, "Saldo": 7623.78, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "01/12/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 5439.05, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/12/2025", "Ingreso": 0.0, "Gasto": 129.68, "Saldo": 5419.05, "Desc": "CUOTA AGRUPADA MYBOX 01-12-2025 RECIBO UNICO MYBOX", "Categoria": "Seguros", "Tipo": "Fijo"}, {"Fecha_Op": "01/12/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 5548.73, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/12/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 5549.72, "Desc": "1762 56 0004794 99 000012 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/12/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 5949.72, "Desc": "1762 56 0004065 30 000029 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "29/11/2025", "Ingreso": 0.0, "Gasto": 638.74, "Saldo": 6299.72, "Desc": "PRES.32561167424", "Categoria": "Hipoteca", "Tipo": "Fijo"}, {"Fecha_Op": "27/11/2025", "Ingreso": 0.0, "Gasto": 6.6, "Saldo": 7160.39, "Desc": "RINCON DE GOYA 2", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/11/2025", "Ingreso": 441.62, "Gasto": 0.0, "Saldo": 7192.34, "Desc": "MEDIA MARKT ONLIN", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "27/11/2025", "Ingreso": 0.0, "Gasto": 25.35, "Saldo": 7166.99, "Desc": "ESTANCO", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "27/11/2025", "Ingreso": 0.0, "Gasto": 79.95, "Saldo": 7080.44, "Desc": "CREATE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/11/2025", "Ingreso": 0.0, "Gasto": 141.98, "Saldo": 6938.46, "Desc": "AGROJARDIN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/11/2025", "Ingreso": 0.0, "Gasto": 31.99, "Saldo": 6750.72, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "25/11/2025", "Ingreso": 0.0, "Gasto": 12.85, "Saldo": 6782.71, "Desc": "LIDL ZAR-PLAZA RO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/11/2025", "Ingreso": 0.0, "Gasto": 54.28, "Saldo": 6795.56, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "25/11/2025", "Ingreso": 100.0, "Gasto": 0.0, "Saldo": 6849.84, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "23/11/2025", "Ingreso": 150.0, "Gasto": 0.0, "Saldo": 6917.54, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "23/11/2025", "Ingreso": 0.0, "Gasto": 42.7, "Saldo": 6874.84, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "23/11/2025", "Ingreso": 0.0, "Gasto": 25.0, "Saldo": 6849.84, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "23/11/2025", "Ingreso": 0.0, "Gasto": 100.0, "Saldo": 6749.84, "Desc": "ES LA JAREA 1", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/11/2025", "Ingreso": 0.0, "Gasto": 150.0, "Saldo": 6767.54, "Desc": "EE SS ALCAMPO BAR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/11/2025", "Ingreso": 0.0, "Gasto": 69.8, "Saldo": 6917.54, "Desc": "KANGURO TRUCHERO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/11/2025", "Ingreso": 0.0, "Gasto": 106.75, "Saldo": 6987.34, "Desc": "HIPERSIMPLY BARBA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/11/2025", "Ingreso": 0.0, "Gasto": 63.62, "Saldo": 7094.09, "Desc": "CARREF ACTUR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/11/2025", "Ingreso": 0.0, "Gasto": 30.25, "Saldo": 7157.71, "Desc": "ESTANCO", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "20/11/2025", "Ingreso": 7.0, "Gasto": 0.0, "Saldo": 7187.96, "Desc": "TATIANA CAROLINA;FERNANDEZ;FLATTARD", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "18/11/2025", "Ingreso": 0.0, "Gasto": 14.5, "Saldo": 7180.96, "Desc": "LA CUCHARRENA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/11/2025", "Ingreso": 19.58, "Gasto": 0.0, "Saldo": 7145.46, "Desc": "MEDIA MARKT ONLIN", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "17/11/2025", "Ingreso": 50.0, "Gasto": 0.0, "Saldo": 7195.46, "Desc": "Maria Pilar;Ferrer;Oliver", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "16/11/2025", "Ingreso": 461.2, "Gasto": 0.0, "Saldo": 7125.88, "Desc": "EXPED. 451738824 FECHA 171125 DEV.A MARKT ONLIN", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "16/11/2025", "Ingreso": 0.0, "Gasto": 28.89, "Saldo": 6664.68, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/11/2025", "Ingreso": 0.0, "Gasto": 18.63, "Saldo": 6693.57, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "16/11/2025", "Ingreso": 30.0, "Gasto": 0.0, "Saldo": 6712.2, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "16/11/2025", "Ingreso": 0.0, "Gasto": 30.0, "Saldo": 6682.2, "Desc": "COOPERATIVA SAN I", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/11/2025", "Ingreso": 0.0, "Gasto": 105.31, "Saldo": 6712.2, "Desc": "AMAZON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/11/2025", "Ingreso": 900.0, "Gasto": 0.0, "Saldo": 6817.51, "Desc": "INGRESO INGRESO CAJERO", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "13/11/2025", "Ingreso": 0.0, "Gasto": 10.54, "Saldo": 5917.51, "Desc": "MERCADONA PLAZA D", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/11/2025", "Ingreso": 40.0, "Gasto": 0.0, "Saldo": 5928.05, "Desc": "TATIANA CAROLINA;FERNANDEZ;FLATTARD", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "13/11/2025", "Ingreso": 0.0, "Gasto": 25.5, "Saldo": 5888.05, "Desc": "ESTANCO GRAN VIA", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "12/11/2025", "Ingreso": 0.0, "Gasto": 40.0, "Saldo": 5913.55, "Desc": "ADMINISTRACION DE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/11/2025", "Ingreso": 0.0, "Gasto": 681.98, "Saldo": 5953.55, "Desc": "MEDIA MARKT ONLIN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/11/2025", "Ingreso": 0.0, "Gasto": 3.25, "Saldo": 6635.53, "Desc": "BIP DRIVE SA", "Categoria": "Autopistas", "Tipo": "Variable"}, {"Fecha_Op": "12/11/2025", "Ingreso": 150.0, "Gasto": 0.0, "Saldo": 6638.78, "Desc": "Diana;Carceller;Ortega", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "11/11/2025", "Ingreso": 0.0, "Gasto": 96.45, "Saldo": 7058.57, "Desc": "IKEA ZARAGOZA HFB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/11/2025", "Ingreso": 0.0, "Gasto": 461.2, "Saldo": 6597.37, "Desc": "MEDIA MARKT ONLIN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/11/2025", "Ingreso": 0.0, "Gasto": 100.0, "Saldo": 6497.37, "Desc": "Revolut**6649*", "Categoria": "Cuenta común", "Tipo": "Fijo"}, {"Fecha_Op": "11/11/2025", "Ingreso": 0.0, "Gasto": 8.59, "Saldo": 6488.78, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "10/11/2025", "Ingreso": 0.0, "Gasto": 9.47, "Saldo": 7155.02, "Desc": "HORNO ESCOSURA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/11/2025", "Ingreso": 0.0, "Gasto": 70.71, "Saldo": 7164.49, "Desc": "LIDL ZAR-PLAZA RO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/11/2025", "Ingreso": 0.0, "Gasto": 34.46, "Saldo": 7351.4, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "08/11/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 7325.86, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/11/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 7385.86, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "08/11/2025", "Ingreso": 0.0, "Gasto": 5.0, "Saldo": 7346.4, "Desc": "BAR RESTAURANTE E", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/11/2025", "Ingreso": 0.0, "Gasto": 59.5, "Saldo": 7286.9, "Desc": "AGUAS DE PANTICOS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/11/2025", "Ingreso": 0.0, "Gasto": 51.7, "Saldo": 7235.2, "Desc": "COMOMELOCOMO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "07/11/2025", "Ingreso": 0.0, "Gasto": 48.46, "Saldo": 7385.86, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "07/11/2025", "Ingreso": 0.0, "Gasto": 17.9, "Saldo": 7434.32, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "07/11/2025", "Ingreso": 0.0, "Gasto": 27.99, "Saldo": 7452.22, "Desc": "ESTANCO GRAN VIA", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "04/11/2025", "Ingreso": 0.0, "Gasto": 40.0, "Saldo": 7480.21, "Desc": "ADMINISTRACION DE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/11/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 7520.21, "Desc": "PASSARO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/11/2025", "Ingreso": 350.0, "Gasto": 0.0, "Saldo": 7535.21, "Desc": "ALBERTO CARCELLER ORTEGA NOTPROVIDE", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "03/11/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 7240.2, "Desc": "1762 56 0004794 99 000011 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "03/11/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 7185.21, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "03/11/2025", "Ingreso": 0.0, "Gasto": 4.99, "Saldo": 7235.21, "Desc": "MIDIA STORES CATA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/11/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 7640.2, "Desc": "1762 56 0004065 30 000028 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "02/11/2025", "Ingreso": 0.0, "Gasto": 30.2, "Saldo": 7990.2, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/11/2025", "Ingreso": 0.0, "Gasto": 28.79, "Saldo": 8020.4, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "02/11/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 8049.19, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "02/11/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 7989.19, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/11/2025", "Ingreso": 0.0, "Gasto": 2.0, "Saldo": 8049.19, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/11/2025", "Ingreso": 0.0, "Gasto": 18.0, "Saldo": 8051.19, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "01/11/2025", "Ingreso": 0.0, "Gasto": 6.5, "Saldo": 8069.19, "Desc": "LA TASCA DEL ARTI", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/11/2025", "Ingreso": 0.0, "Gasto": 129.68, "Saldo": 8075.69, "Desc": "CUOTA AGRUPADA MYBOX 01-11-2025 RECIBO UNICO MYBOX", "Categoria": "Seguros", "Tipo": "Fijo"}, {"Fecha_Op": "01/11/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 8205.37, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/11/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 8206.36, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "31/10/2025", "Ingreso": 0.0, "Gasto": 638.74, "Saldo": 8186.36, "Desc": "PRES.32561167424", "Categoria": "Hipoteca", "Tipo": "Fijo"}, {"Fecha_Op": "30/10/2025", "Ingreso": 2218.67, "Gasto": 0.0, "Saldo": 8825.1, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "28/10/2025", "Ingreso": 5.7, "Gasto": 0.0, "Saldo": 6721.38, "Desc": "ALEJANDRO;GISBERT;SODRIC", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "28/10/2025", "Ingreso": 0.0, "Gasto": 111.85, "Saldo": 6609.53, "Desc": "EL CORTE INGLES V", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "28/10/2025", "Ingreso": 5.7, "Gasto": 0.0, "Saldo": 6615.23, "Desc": "SERGIO;SERRANO;CRUZ", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "28/10/2025", "Ingreso": 5.7, "Gasto": 0.0, "Saldo": 6620.93, "Desc": "MIGUEL;GARGALLO;CUARTIELLES", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "28/10/2025", "Ingreso": 3.0, "Gasto": 0.0, "Saldo": 6623.93, "Desc": "Carlos;Serrano;Garcia", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "28/10/2025", "Ingreso": 0.0, "Gasto": 17.5, "Saldo": 6606.43, "Desc": "JIANFENG WANG", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/10/2025", "Ingreso": 5.7, "Gasto": 0.0, "Saldo": 6715.68, "Desc": "ENRIQUE JAVIER;OMEDES;INSA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "27/10/2025", "Ingreso": 0.0, "Gasto": 1107.0, "Saldo": 6709.98, "Desc": "IKEA IBERICA WEB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/10/2025", "Ingreso": 0.0, "Gasto": 37.2, "Saldo": 7816.98, "Desc": "LIDL ZAR-PLAZA RO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/10/2025", "Ingreso": 0.0, "Gasto": 37.21, "Saldo": 7854.18, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "22/10/2025", "Ingreso": 0.0, "Gasto": 31.99, "Saldo": 7891.39, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "20/10/2025", "Ingreso": 0.0, "Gasto": 22.16, "Saldo": 7923.38, "Desc": "ESTANCO", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "18/10/2025", "Ingreso": 0.0, "Gasto": 6.1, "Saldo": 7945.54, "Desc": "HORNO ESCOSURA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "18/10/2025", "Ingreso": 0.0, "Gasto": 23.42, "Saldo": 7951.64, "Desc": "0581 ECI PUERTO V", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "18/10/2025", "Ingreso": 0.0, "Gasto": 143.36, "Saldo": 7975.06, "Desc": "IKEA ZARAGOZA HFB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/10/2025", "Ingreso": 0.0, "Gasto": 30.41, "Saldo": 8118.42, "Desc": "MERCADONA PLAZA D", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/10/2025", "Ingreso": 0.0, "Gasto": 47.0, "Saldo": 8148.83, "Desc": "CAFETERIA BERLANG", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/10/2025", "Ingreso": 0.0, "Gasto": 12.74, "Saldo": 8195.83, "Desc": "HIPER DELICIAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/10/2025", "Ingreso": 0.0, "Gasto": 25.0, "Saldo": 8208.57, "Desc": "FLORISTERIA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/10/2025", "Ingreso": 0.0, "Gasto": 25.0, "Saldo": 8233.57, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "12/10/2025", "Ingreso": 0.0, "Gasto": 83.89, "Saldo": 8258.57, "Desc": "MERCADONA PLAZA D", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/10/2025", "Ingreso": 150.0, "Gasto": 0.0, "Saldo": 8342.46, "Desc": "Diana;Carceller;Ortega", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "09/10/2025", "Ingreso": 0.0, "Gasto": 9.5, "Saldo": 8192.46, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "09/10/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 8201.96, "Desc": "Pilar;Fernandez;Ferrer", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "09/10/2025", "Ingreso": 0.0, "Gasto": 41.3, "Saldo": 8181.96, "Desc": "CANIBAL ROYAL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/10/2025", "Ingreso": 0.0, "Gasto": 36.9, "Saldo": 8223.26, "Desc": "NATURA ZARAGOZA A", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/10/2025", "Ingreso": 0.0, "Gasto": 34.0, "Saldo": 8260.16, "Desc": "ESTANCO GRAN VIA", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "06/10/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 8294.16, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "05/10/2025", "Ingreso": 686.83, "Gasto": 0.0, "Saldo": 8342.63, "Desc": "ALBERTO CARCELLER ORTEGA NOTPROVIDE", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "04/10/2025", "Ingreso": 0.0, "Gasto": 85.0, "Saldo": 7655.8, "Desc": "LEROY MERLIN ES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/10/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 7740.8, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "02/10/2025", "Ingreso": 0.0, "Gasto": 49.4, "Saldo": 7755.8, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "02/10/2025", "Ingreso": 0.0, "Gasto": 14.05, "Saldo": 7805.2, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/10/2025", "Ingreso": 0.0, "Gasto": 14.7, "Saldo": 7819.25, "Desc": "ESTANCO GRAN VIA", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "02/10/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 7833.95, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "02/10/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 7853.95, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "01/10/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 6264.49, "Desc": "1762 56 0004065 30 000027 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/10/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 5884.49, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/10/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 5864.49, "Desc": "1762 56 0004794 99 000010 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/10/2025", "Ingreso": 0.0, "Gasto": 12.23, "Saldo": 5741.59, "Desc": "FRUTAS ANA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/10/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 5883.5, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/10/2025", "Ingreso": 0.0, "Gasto": 129.68, "Saldo": 5753.82, "Desc": "CUOTA AGRUPADA MYBOX 01-10-2025 RECIBO UNICO MYBOX", "Categoria": "Seguros", "Tipo": "Fijo"}, {"Fecha_Op": "01/10/2025", "Ingreso": 2162.36, "Gasto": 0.0, "Saldo": 7903.95, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "30/09/2025", "Ingreso": 0.0, "Gasto": 638.74, "Saldo": 6614.49, "Desc": "PRES.32561167424", "Categoria": "Hipoteca", "Tipo": "Fijo"}, {"Fecha_Op": "28/09/2025", "Ingreso": 0.0, "Gasto": 9.6, "Saldo": 7253.23, "Desc": "PRIMAPRIX ZARAGOZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/09/2025", "Ingreso": 0.0, "Gasto": 7.82, "Saldo": 7262.83, "Desc": "EL RINCON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/09/2025", "Ingreso": 0.0, "Gasto": 42.79, "Saldo": 7270.65, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/09/2025", "Ingreso": 45.0, "Gasto": 0.0, "Saldo": 7313.44, "Desc": "Pilar;Fernandez;Ferrer", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "27/09/2025", "Ingreso": 0.0, "Gasto": 67.63, "Saldo": 7268.44, "Desc": "PERFUMERIA PRIMOR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/09/2025", "Ingreso": 0.0, "Gasto": 162.09, "Saldo": 7336.07, "Desc": "MM ZARAGOZA PUERT", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/09/2025", "Ingreso": 0.0, "Gasto": 18.66, "Saldo": 7498.16, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "23/09/2025", "Ingreso": 0.0, "Gasto": 8.7, "Saldo": 7516.82, "Desc": "CAFETERIA BERLANG", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "23/09/2025", "Ingreso": 0.0, "Gasto": 52.66, "Saldo": 7525.52, "Desc": "MERCADONA PLAZA D", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/09/2025", "Ingreso": 17.2, "Gasto": 0.0, "Saldo": 7578.18, "Desc": "FERRETERIAS ARIES", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "20/09/2025", "Ingreso": 0.0, "Gasto": 16.48, "Saldo": 7592.28, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/09/2025", "Ingreso": 0.0, "Gasto": 31.3, "Saldo": 7560.98, "Desc": "FERRETERIAS ARIES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "18/09/2025", "Ingreso": 0.0, "Gasto": 1481.23, "Saldo": 7608.76, "Desc": "Search Engine Bus", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "18/09/2025", "Ingreso": 0.0, "Gasto": 44.28, "Saldo": 9089.99, "Desc": "MIDIA STORES CATA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/09/2025", "Ingreso": 1098.99, "Gasto": 0.0, "Saldo": 9134.27, "Desc": "PcComponentes", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "17/09/2025", "Ingreso": 0.0, "Gasto": 41.34, "Saldo": 8035.28, "Desc": "MERCADONA PLAZA D", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/09/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 8076.62, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "16/09/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 8096.61, "Desc": "PASSARO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/09/2025", "Ingreso": 0.0, "Gasto": 29.75, "Saldo": 8111.61, "Desc": "FERRETERIA ARIES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/09/2025", "Ingreso": 0.0, "Gasto": 11.0, "Saldo": 8141.36, "Desc": "BAR KEBAB ESTAMBU", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/09/2025", "Ingreso": 26.0, "Gasto": 0.0, "Saldo": 8152.36, "Desc": "Marta;Espallargas;Aparicio", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "11/09/2025", "Ingreso": 0.0, "Gasto": 5.95, "Saldo": 8126.36, "Desc": "6283 Zaragoza - P", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/09/2025", "Ingreso": 0.0, "Gasto": 4.27, "Saldo": 8132.31, "Desc": "HIPER DELICIAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "10/09/2025", "Ingreso": 0.0, "Gasto": 102.04, "Saldo": 8136.58, "Desc": "BIP DRIVE SA", "Categoria": "Autopistas", "Tipo": "Variable"}, {"Fecha_Op": "09/09/2025", "Ingreso": 0.0, "Gasto": 119.85, "Saldo": 8238.62, "Desc": "IKEA IBERICA WEB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/09/2025", "Ingreso": 0.0, "Gasto": 76.68, "Saldo": 8358.47, "Desc": "MERCADONA PLAZA D", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "07/09/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 8435.15, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "06/09/2025", "Ingreso": 0.0, "Gasto": 19.3, "Saldo": 8512.58, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/09/2025", "Ingreso": 0.0, "Gasto": 28.96, "Saldo": 8483.62, "Desc": "Glovo 07SEP Z317V", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/09/2025", "Ingreso": 0.0, "Gasto": 26.8, "Saldo": 8528.48, "Desc": "CAFE-BAR BERLANGA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/09/2025", "Ingreso": 0.0, "Gasto": 23.7, "Saldo": 8555.28, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/09/2025", "Ingreso": 3.4, "Gasto": 0.0, "Saldo": 8531.88, "Desc": "MARIA;SODRIC;TELLO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "04/09/2025", "Ingreso": 0.0, "Gasto": 100.0, "Saldo": 8578.98, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "03/09/2025", "Ingreso": 0.0, "Gasto": 30.05, "Saldo": 10540.76, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/09/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 8678.98, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "03/09/2025", "Ingreso": 0.0, "Gasto": 908.9, "Saldo": 8698.98, "Desc": "IKEA IBERICA WEB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/09/2025", "Ingreso": 0.0, "Gasto": 26.55, "Saldo": 9607.88, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/09/2025", "Ingreso": 0.0, "Gasto": 906.33, "Saldo": 9634.43, "Desc": "IKEA ZARAGOZA HFB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/09/2025", "Ingreso": 0.0, "Gasto": 66.48, "Saldo": 10570.81, "Desc": "MERLIN PUERTO VEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/09/2025", "Ingreso": 2040.53, "Gasto": 0.0, "Saldo": 10637.29, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "02/09/2025", "Ingreso": 0.0, "Gasto": 604.99, "Saldo": 8596.76, "Desc": "IKEA ZARAGOZA HFB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/09/2025", "Ingreso": 0.0, "Gasto": 36.96, "Saldo": 9201.75, "Desc": "IKEA ZARAGOZA HFB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 9387.86, "Desc": "1762 56 0004794 99 000009 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 77.65, "Saldo": 9329.22, "Desc": "CUOTA AGRUPADA MYBOX 01-09-2025 RECIBO UNICO MYBOX", "Categoria": "Seguros", "Tipo": "Fijo"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 9787.86, "Desc": "1762 56 0004065 30 000026 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/09/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 9407.86, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 9406.87, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/09/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 9329.22, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 40.51, "Saldo": 9288.71, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 9269.22, "Desc": "COOPERATIVA SAN I", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/09/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 9238.71, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "30/08/2025", "Ingreso": 0.0, "Gasto": 35.68, "Saldo": 10137.86, "Desc": "PRES.32561167424", "Categoria": "Hipoteca", "Tipo": "Fijo"}, {"Fecha_Op": "30/08/2025", "Ingreso": 0.0, "Gasto": 9.0, "Saldo": 10173.54, "Desc": "PUB CAMEL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "30/08/2025", "Ingreso": 0.0, "Gasto": 7.0, "Saldo": 10182.54, "Desc": "PUB CAMEL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "30/08/2025", "Ingreso": 0.0, "Gasto": 18.18, "Saldo": 10189.54, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "30/08/2025", "Ingreso": 50.0, "Gasto": 0.0, "Saldo": 10207.72, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "30/08/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 10157.72, "Desc": "BON AREA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "29/08/2025", "Ingreso": 0.0, "Gasto": 2.6, "Saldo": 10207.72, "Desc": "CUOTA INICIAL 9690329320898 RECIBO UNICO MYBOX", "Categoria": "Seguros", "Tipo": "Fijo"}, {"Fecha_Op": "28/08/2025", "Ingreso": 156150.0, "Gasto": 0.0, "Saldo": 226446.5, "Desc": "E. CARCELLER ORTEGA 32561167424 CONSTIT. PRESTAMO", "Categoria": "Prestamo", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 1132.14, "Saldo": 10313.21, "Desc": "PcComponentes", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 4986.0, "Saldo": 70296.5, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Gastos varios", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 215000.0, "Saldo": 11446.5, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Compra vivienda", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 1.15, "Saldo": 11445.35, "Desc": "FERRETERIAS ARIES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 0.5, "Saldo": 10312.71, "Desc": "SUPER HALAL CARNI", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 47.99, "Saldo": 10225.32, "Desc": "AMAZON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 10210.32, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "28/08/2025", "Ingreso": 0.0, "Gasto": 39.4, "Saldo": 10273.31, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/08/2025", "Ingreso": 0.0, "Gasto": 0.36, "Saldo": 75282.5, "Desc": "P.SERV. ENVIO JUST.", "Categoria": "Gastos varios", "Tipo": "Variable"}, {"Fecha_Op": "26/08/2025", "Ingreso": 0.0, "Gasto": 98.72, "Saldo": 75282.86, "Desc": "SUENOS ZZZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/08/2025", "Ingreso": 0.0, "Gasto": 3.2, "Saldo": 75831.58, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/08/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 75834.78, "Desc": "TODOTARAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/08/2025", "Ingreso": 0.0, "Gasto": 450.0, "Saldo": 75381.58, "Desc": "TODOTARAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/08/2025", "Ingreso": 0.0, "Gasto": 10.0, "Saldo": 75849.78, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "21/08/2025", "Ingreso": 0.0, "Gasto": 46.77, "Saldo": 75859.78, "Desc": "Glovo 24AUG ZAFBD", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/08/2025", "Ingreso": 0.0, "Gasto": 3.5, "Saldo": 75906.55, "Desc": "AREA DE SERVICIO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/08/2025", "Ingreso": 0.0, "Gasto": 209.9, "Saldo": 75910.05, "Desc": "LEROY MERLIN ES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/08/2025", "Ingreso": 0.0, "Gasto": 14.1, "Saldo": 76119.95, "Desc": "8109 AV ARAGON AL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "18/08/2025", "Ingreso": 0.0, "Gasto": 16.77, "Saldo": 76134.05, "Desc": "CUOTA INICIAL 5504421478746 RECIBO UNICO MYBOX", "Categoria": "Seguros", "Tipo": "Fijo"}, {"Fecha_Op": "17/08/2025", "Ingreso": 45000.0, "Gasto": 0.0, "Saldo": 76150.82, "Desc": "JOSE MIGUEL CARCELLER INSA", "Categoria": "Donación", "Tipo": "Variable"}, {"Fecha_Op": "17/08/2025", "Ingreso": 0.0, "Gasto": 143.9, "Saldo": 31150.82, "Desc": "CREATE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/08/2025", "Ingreso": 0.0, "Gasto": 21.1, "Saldo": 31381.44, "Desc": "CASA ANGEL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/08/2025", "Ingreso": 205.0, "Gasto": 0.0, "Saldo": 31454.68, "Desc": "Pilar;Fernandez;Ferrer", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "16/08/2025", "Ingreso": 0.0, "Gasto": 52.14, "Saldo": 31402.54, "Desc": "E.S. RUENTE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/08/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 31312.76, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "16/08/2025", "Ingreso": 0.0, "Gasto": 39.2, "Saldo": 31342.24, "Desc": "MESON EL PRADON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/08/2025", "Ingreso": 0.0, "Gasto": 18.04, "Saldo": 31294.72, "Desc": "AMZN Mktp ES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/08/2025", "Ingreso": 0.0, "Gasto": 9.49, "Saldo": 31332.75, "Desc": "MERLIN PUERTO VEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/08/2025", "Ingreso": 0.0, "Gasto": 413.7, "Saldo": 31249.68, "Desc": "RESTAURANTE PUNVI", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/08/2025", "Ingreso": 0.0, "Gasto": 44.0, "Saldo": 31663.38, "Desc": "SI QUERIDA - YAIR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/08/2025", "Ingreso": 0.0, "Gasto": 1.25, "Saldo": 31707.38, "Desc": "EMV COMILLAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/08/2025", "Ingreso": 0.0, "Gasto": 13.79, "Saldo": 31708.63, "Desc": "LUPA ESTACI N CAB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/08/2025", "Ingreso": 0.0, "Gasto": 90.0, "Saldo": 31722.42, "Desc": "CABARCENO B2C", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/08/2025", "Ingreso": 0.0, "Gasto": 42.8, "Saldo": 31812.42, "Desc": "Restaurante Rio A", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/08/2025", "Ingreso": 0.0, "Gasto": 24.47, "Saldo": 31855.22, "Desc": "EL TORREON PDTS A", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 0.0, "Gasto": 0.4, "Saldo": 32001.49, "Desc": "AYUNTAMIENTO DE O", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 0.0, "Gasto": 5.0, "Saldo": 32018.92, "Desc": "CAFETERIA KARTING", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 0.0, "Gasto": 17.03, "Saldo": 32001.89, "Desc": "MERCADONA BENAHAV", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 65.0, "Gasto": 0.0, "Saldo": 32023.92, "Desc": "Pilar;Fernandez;Ferrer", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 0.0, "Gasto": 57.9, "Saldo": 31943.59, "Desc": "SP BLUE BANANA BR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 0.0, "Gasto": 57.9, "Saldo": 31885.69, "Desc": "SIDRERIA LA FINCA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/08/2025", "Ingreso": 0.0, "Gasto": 6.0, "Saldo": 31879.69, "Desc": "NARAK", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 32159.7, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 18.0, "Gasto": 0.0, "Saldo": 32190.8, "Desc": "Mihaela Manuela;Muntean;Cozma", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 32099.7, "Desc": "BALLENOIL OVIEDO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 0.0, "Gasto": 31.1, "Saldo": 32159.7, "Desc": "UGALDEBIETA HOSTE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 0.0, "Gasto": 58.08, "Saldo": 32101.62, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "11/08/2025", "Ingreso": 0.0, "Gasto": 5.05, "Saldo": 32096.57, "Desc": "PARKING SALESAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 0.0, "Gasto": 134.9, "Saldo": 31958.92, "Desc": "MUSEO FERNANDO AL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/08/2025", "Ingreso": 0.0, "Gasto": 2.75, "Saldo": 32093.82, "Desc": "BIP DRIVE SA", "Categoria": "Autopistas", "Tipo": "Variable"}, {"Fecha_Op": "10/08/2025", "Ingreso": 18.0, "Gasto": 0.0, "Saldo": 32172.8, "Desc": "MIGUEL;GARGALLO;CUARTIELLES", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "10/08/2025", "Ingreso": 18.0, "Gasto": 0.0, "Saldo": 32154.8, "Desc": "LUCIA;MODREGO;JIMENEZ", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "10/08/2025", "Ingreso": 18.0, "Gasto": 0.0, "Saldo": 32136.8, "Desc": "ENRIQUE JAVIER;OMEDES;INSA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "10/08/2025", "Ingreso": 18.0, "Gasto": 0.0, "Saldo": 32118.8, "Desc": "Gerardo;Manero;Domene", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "08/08/2025", "Ingreso": 0.0, "Gasto": 108.0, "Saldo": 32100.8, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/08/2025", "Ingreso": 0.0, "Gasto": 7.2, "Saldo": 32208.8, "Desc": "BAR GUADALOPE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/08/2025", "Ingreso": 90.0, "Gasto": 0.0, "Saldo": 32224.47, "Desc": "Maria Pilar;Ferrer;Oliver", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "06/08/2025", "Ingreso": 0.0, "Gasto": 40.0, "Saldo": 32224.47, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "06/08/2025", "Ingreso": 0.0, "Gasto": 90.0, "Saldo": 32134.47, "Desc": "OPTICA UNIVERSITA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/08/2025", "Ingreso": 40.0, "Gasto": 0.0, "Saldo": 32264.47, "Desc": "Pilar;Fernandez;Ferrer", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "06/08/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 32216.0, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "05/08/2025", "Ingreso": 0.0, "Gasto": 40.0, "Saldo": 32264.47, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "02/08/2025", "Ingreso": 0.0, "Gasto": 42.7, "Saldo": 32304.47, "Desc": "EXPENDIDURIA 58 E", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/08/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 32347.17, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "01/08/2025", "Ingreso": 2228.43, "Gasto": 0.0, "Saldo": 32397.17, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "01/08/2025", "Ingreso": 0.0, "Gasto": 36.0, "Saldo": 30168.74, "Desc": "FUNDACION MUSEO Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/08/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 30204.74, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/08/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 30205.73, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/08/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 30185.73, "Desc": "1762 56 0004794 99 000008 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "31/07/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 30585.73, "Desc": "1762 56 0004065 30 000025 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "30/07/2025", "Ingreso": 0.0, "Gasto": 13.95, "Saldo": 30935.73, "Desc": "BAR BER", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/07/2025", "Ingreso": 0.0, "Gasto": 130.0, "Saldo": 30949.68, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 18.0, "Saldo": 31129.68, "Desc": "BAR PLAZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 13.0, "Saldo": 31164.18, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 7.5, "Saldo": 31156.68, "Desc": "BAR KEBAB ESTAMBU", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 6.0, "Saldo": 31150.68, "Desc": "BAR VENECIA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 3.0, "Saldo": 31147.68, "Desc": "MOOD GIN CLUB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 12.0, "Saldo": 31117.68, "Desc": "MOOD GIN CLUB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 3.0, "Saldo": 31114.68, "Desc": "MOOD GIN CLUB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 3.0, "Saldo": 31111.68, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 3.0, "Saldo": 31108.68, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/07/2025", "Ingreso": 0.0, "Gasto": 29.0, "Saldo": 31079.68, "Desc": "Glovo 27JUL ZK1RX", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/07/2025", "Ingreso": 0.0, "Gasto": 3.0, "Saldo": 31177.18, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/07/2025", "Ingreso": 0.0, "Gasto": 9.0, "Saldo": 31180.18, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "23/07/2025", "Ingreso": 0.0, "Gasto": 237.0, "Saldo": 31189.18, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "23/07/2025", "Ingreso": 0.0, "Gasto": 25.25, "Saldo": 31426.18, "Desc": "CINES ARAGONIA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/07/2025", "Ingreso": 0.0, "Gasto": 6.2, "Saldo": 31451.43, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/07/2025", "Ingreso": 0.0, "Gasto": 293.06, "Saldo": 31457.63, "Desc": "Provisión Fondos", "Categoria": "Tasación", "Tipo": "Variable"}, {"Fecha_Op": "21/07/2025", "Ingreso": 0.0, "Gasto": 5000.0, "Saldo": 31750.69, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "20/07/2025", "Ingreso": 0.0, "Gasto": 23.27, "Saldo": 36750.69, "Desc": "FRUTAS Y VERDURAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/07/2025", "Ingreso": 9.2, "Gasto": 0.0, "Saldo": 36773.96, "Desc": "Marcos;Estupina;Insa", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/07/2025", "Ingreso": 0.0, "Gasto": 92.0, "Saldo": 36703.66, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/07/2025", "Ingreso": 9.2, "Gasto": 0.0, "Saldo": 36712.86, "Desc": "MIGUEL;GARGALLO;CUARTIELLES", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/07/2025", "Ingreso": 18.4, "Gasto": 0.0, "Saldo": 36731.26, "Desc": "ALEJANDRO;GISBERT;SODRIC", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/07/2025", "Ingreso": 15.1, "Gasto": 0.0, "Saldo": 36746.36, "Desc": "MARIA;SODRIC;TELLO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/07/2025", "Ingreso": 9.2, "Gasto": 0.0, "Saldo": 36764.76, "Desc": "Carlos;Serrano;Garcia", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/07/2025", "Ingreso": 9.2, "Gasto": 0.0, "Saldo": 36755.56, "Desc": "Eva;Ferrando;Bordas", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "18/07/2025", "Ingreso": 20000.0, "Gasto": 0.0, "Saldo": 36795.66, "Desc": "JOSE MIGUEL CARCELLER INSA", "Categoria": "Donación", "Tipo": "Variable"}, {"Fecha_Op": "17/07/2025", "Ingreso": 0.0, "Gasto": 23.75, "Saldo": 16795.66, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/07/2025", "Ingreso": 0.0, "Gasto": 86.79, "Saldo": 16819.41, "Desc": "ZARA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/07/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 16906.2, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "14/07/2025", "Ingreso": 0.0, "Gasto": 34.0, "Saldo": 16926.19, "Desc": "ESTANCO GRAN VIA", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "12/07/2025", "Ingreso": 0.0, "Gasto": 31.46, "Saldo": 16960.19, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/07/2025", "Ingreso": 0.0, "Gasto": 33.5, "Saldo": 16991.65, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "11/07/2025", "Ingreso": 0.0, "Gasto": 3.4, "Saldo": 17025.15, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "10/07/2025", "Ingreso": 0.0, "Gasto": 3.6, "Saldo": 17028.55, "Desc": "IES BAJO ARAGON Y", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "10/07/2025", "Ingreso": 0.0, "Gasto": 6.0, "Saldo": 17032.15, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "09/07/2025", "Ingreso": 0.0, "Gasto": 3000.0, "Saldo": 17038.15, "Desc": "INVERSIONES RILLO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/07/2025", "Ingreso": 0.0, "Gasto": 24.19, "Saldo": 20038.15, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/07/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 20062.34, "Desc": "GALERIA MUNDIAL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "07/07/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 20082.33, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "07/07/2025", "Ingreso": 0.0, "Gasto": 11.88, "Saldo": 20130.8, "Desc": "LUXE PREMIER", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/07/2025", "Ingreso": 0.0, "Gasto": 6.2, "Saldo": 20142.68, "Desc": "MARIA ROSARIO LOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/07/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 20148.88, "Desc": "LA NEVERA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/07/2025", "Ingreso": 0.0, "Gasto": 6.1, "Saldo": 20163.88, "Desc": "TAXI 981", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/07/2025", "Ingreso": 0.0, "Gasto": 23.7, "Saldo": 20169.98, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/07/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 20193.68, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "02/07/2025", "Ingreso": 0.0, "Gasto": 73.15, "Saldo": 20357.68, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/07/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 20430.83, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "01/07/2025", "Ingreso": 2190.65, "Gasto": 0.0, "Saldo": 20480.83, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "01/07/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 18290.18, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/07/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 18291.17, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/07/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 18271.17, "Desc": "1762 56 0004794 99 000007 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "29/06/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 18671.17, "Desc": "1762 56 0004065 30 000024 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "29/06/2025", "Ingreso": 0.0, "Gasto": 26.0, "Saldo": 19021.17, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "29/06/2025", "Ingreso": 0.0, "Gasto": 37.5, "Saldo": 19047.17, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "29/06/2025", "Ingreso": 37.5, "Gasto": 0.0, "Saldo": 19084.67, "Desc": "ALEJANDRO;BRUN;IZQUIERDO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "28/06/2025", "Ingreso": 0.0, "Gasto": 22.0, "Saldo": 19047.17, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "27/06/2025", "Ingreso": 0.0, "Gasto": 64.0, "Saldo": 19069.17, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "26/06/2025", "Ingreso": 0.0, "Gasto": 35.5, "Saldo": 19133.17, "Desc": "BARVINA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/06/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 19168.67, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "24/06/2025", "Ingreso": 0.0, "Gasto": 35.23, "Saldo": 19174.87, "Desc": "Glovo 24JUN ZERHK", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/06/2025", "Ingreso": 0.0, "Gasto": 6.2, "Saldo": 19188.67, "Desc": "EXPENDURIA DE TAB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/06/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 19194.87, "Desc": "Pilar;Fernandez;Ferrer", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "23/06/2025", "Ingreso": 0.0, "Gasto": 5.98, "Saldo": 19210.1, "Desc": "BEAUTY BY DIA ZAR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/06/2025", "Ingreso": 0.0, "Gasto": 19.11, "Saldo": 19216.08, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/06/2025", "Ingreso": 0.0, "Gasto": 33.45, "Saldo": 19235.19, "Desc": "LEONE PIZZERIA TR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/06/2025", "Ingreso": 0.0, "Gasto": 2.0, "Saldo": 19268.64, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/06/2025", "Ingreso": 0.0, "Gasto": 52.57, "Saldo": 19270.64, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "22/06/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 19323.21, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "21/06/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 19263.21, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/06/2025", "Ingreso": 6.0, "Gasto": 0.0, "Saldo": 19323.21, "Desc": "MIGUEL;GARGALLO;CUARTIELLES", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "18/06/2025", "Ingreso": 0.0, "Gasto": 2.6, "Saldo": 19317.21, "Desc": "LA NEVERA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/06/2025", "Ingreso": 1901.96, "Gasto": 0.0, "Saldo": 19319.81, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "14/06/2025", "Ingreso": 0.0, "Gasto": 10.0, "Saldo": 17440.34, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "14/06/2025", "Ingreso": 0.0, "Gasto": 7.5, "Saldo": 17452.84, "Desc": "MASTERPOP", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/06/2025", "Ingreso": 0.0, "Gasto": 2.5, "Saldo": 17450.34, "Desc": "ESPECTACULOS MAST", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/06/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 17417.85, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "14/06/2025", "Ingreso": 0.0, "Gasto": 2.5, "Saldo": 17437.84, "Desc": "ESPECTACULOS MAST", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/06/2025", "Ingreso": 0.0, "Gasto": 4.5, "Saldo": 17460.34, "Desc": "MASTERPOP", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/06/2025", "Ingreso": 0.0, "Gasto": 13.75, "Saldo": 17464.84, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/06/2025", "Ingreso": 0.0, "Gasto": 22.0, "Saldo": 17478.59, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/06/2025", "Ingreso": 0.0, "Gasto": 100.95, "Saldo": 17500.59, "Desc": "MediaMarkt Market", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "10/06/2025", "Ingreso": 0.0, "Gasto": 13.73, "Saldo": 17601.54, "Desc": "BIP DRIVE SA", "Categoria": "Autopistas", "Tipo": "Variable"}, {"Fecha_Op": "10/06/2025", "Ingreso": 0.0, "Gasto": 79.12, "Saldo": 17615.27, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/06/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 17694.39, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "08/06/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 17822.84, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "08/06/2025", "Ingreso": 0.0, "Gasto": 34.27, "Saldo": 17742.86, "Desc": "FRUTAS Y VERDURAS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/06/2025", "Ingreso": 0.0, "Gasto": 45.71, "Saldo": 17777.13, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "06/06/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 17762.84, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/06/2025", "Ingreso": 0.0, "Gasto": 36.0, "Saldo": 17822.84, "Desc": "Bizum", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "05/06/2025", "Ingreso": 0.0, "Gasto": 18.16, "Saldo": 17858.84, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/06/2025", "Ingreso": 0.0, "Gasto": 6.2, "Saldo": 17877.0, "Desc": "ESTANCO GRAN VIA", "Categoria": "Estanco", "Tipo": "Variable"}, {"Fecha_Op": "04/06/2025", "Ingreso": 0.0, "Gasto": 46.6, "Saldo": 17883.2, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/06/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 18110.75, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "03/06/2025", "Ingreso": 0.0, "Gasto": 16.95, "Saldo": 17929.8, "Desc": "JIANFENG WANG", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/06/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 17946.75, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "02/06/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 15970.1, "Desc": "1762 56 0004794 99 000006 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "02/06/2025", "Ingreso": 2190.65, "Gasto": 0.0, "Saldo": 18160.75, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "01/06/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 16370.1, "Desc": "1762 56 0004065 30 000023 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/06/2025", "Ingreso": 0.0, "Gasto": 12.6, "Saldo": 16720.1, "Desc": "ACUARIO RESTAURAN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/06/2025", "Ingreso": 0.0, "Gasto": 16.71, "Saldo": 16732.7, "Desc": "FORN SANT SALVADO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/06/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 16749.41, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/06/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16750.4, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "31/05/2025", "Ingreso": 0.0, "Gasto": 30.0, "Saldo": 16762.4, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "31/05/2025", "Ingreso": 0.0, "Gasto": 47.71, "Saldo": 16792.4, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "31/05/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 16840.11, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "31/05/2025", "Ingreso": 0.0, "Gasto": 32.0, "Saldo": 16730.4, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "29/05/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 16780.11, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "28/05/2025", "Ingreso": 0.0, "Gasto": 23.1, "Saldo": 16840.11, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/05/2025", "Ingreso": 0.0, "Gasto": 6.4, "Saldo": 16863.21, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "24/05/2025", "Ingreso": 0.0, "Gasto": 11.58, "Saldo": 16869.61, "Desc": "SIMPLY MRKET CAVI", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "23/05/2025", "Ingreso": 0.0, "Gasto": 43.3, "Saldo": 16892.69, "Desc": "GUADALOPE HOTEL A", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "23/05/2025", "Ingreso": 0.0, "Gasto": 11.5, "Saldo": 16881.19, "Desc": "PUB CAMEL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/05/2025", "Ingreso": 0.0, "Gasto": 45.94, "Saldo": 16935.99, "Desc": "AMZN Mktp ES", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/05/2025", "Ingreso": 0.0, "Gasto": 3.6, "Saldo": 16981.93, "Desc": "BAR PLAZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/05/2025", "Ingreso": 0.0, "Gasto": 59.52, "Saldo": 16985.53, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "16/05/2025", "Ingreso": 0.0, "Gasto": 13.83, "Saldo": 17045.05, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/05/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 17058.88, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "15/05/2025", "Ingreso": 0.0, "Gasto": 50.22, "Saldo": 17078.87, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "15/05/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 17129.09, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "14/05/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 17069.09, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/05/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 17129.09, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "13/05/2025", "Ingreso": 0.0, "Gasto": 5.19, "Saldo": 17149.09, "Desc": "BIP DRIVE SA", "Categoria": "Autopistas", "Tipo": "Variable"}, {"Fecha_Op": "12/05/2025", "Ingreso": 0.0, "Gasto": 13.95, "Saldo": 17154.28, "Desc": "BAR BER", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/05/2025", "Ingreso": 0.0, "Gasto": 20.48, "Saldo": 17168.23, "Desc": "MERCADONA AVDA. G", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "10/05/2025", "Ingreso": 0.0, "Gasto": 138.0, "Saldo": 17188.71, "Desc": "ALOJ TURIST BALCO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "10/05/2025", "Ingreso": 0.0, "Gasto": 40.7, "Saldo": 17326.71, "Desc": "ALOJ TURIST BALCO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/05/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 17591.13, "Desc": "DEVOLUCION COMPRA", "Categoria": "Devoluciones", "Tipo": "Variable"}, {"Fecha_Op": "09/05/2025", "Ingreso": 0.0, "Gasto": 44.93, "Saldo": 17546.2, "Desc": "COMPRA CON TARJETA", "Categoria": "Gasolina", "Tipo": "Fijo"}, {"Fecha_Op": "09/05/2025", "Ingreso": 0.0, "Gasto": 55.52, "Saldo": 17490.68, "Desc": "MERCADONA C/ SERR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/05/2025", "Ingreso": 0.0, "Gasto": 123.27, "Saldo": 17367.41, "Desc": "ALOJ TURIST BALCO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/05/2025", "Ingreso": 0.0, "Gasto": 60.0, "Saldo": 17531.13, "Desc": "BONAREA CAR PAY", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/05/2025", "Ingreso": 0.0, "Gasto": 6.0, "Saldo": 17591.13, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "07/05/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 17597.13, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "07/05/2025", "Ingreso": 0.0, "Gasto": 29.9, "Saldo": 17645.6, "Desc": "EXPENDIDURIA 58 E", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/05/2025", "Ingreso": 0.99, "Gasto": 0.0, "Saldo": 17675.5, "Desc": "APPLE.COM/BILL", "Categoria": "Otros ingresos", "Tipo": "Variable"}, {"Fecha_Op": "05/05/2025", "Ingreso": 45.78, "Gasto": 0.0, "Saldo": 17674.51, "Desc": "DEVOLUCIONES TRIBUTARIAS, AGENCIA ESTATAL DE ADMIN", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "04/05/2025", "Ingreso": 0.0, "Gasto": 32.98, "Saldo": 17628.73, "Desc": "DECATHLON ON LINE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/05/2025", "Ingreso": 60.0, "Gasto": 0.0, "Saldo": 17678.29, "Desc": "Eduardo;Carceller;Ortega", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "04/05/2025", "Ingreso": 0.0, "Gasto": 25.0, "Saldo": 17618.29, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "04/05/2025", "Ingreso": 0.0, "Gasto": 10.0, "Saldo": 17643.29, "Desc": "CAFETERIA VEWIN'S", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/05/2025", "Ingreso": 0.0, "Gasto": 16.58, "Saldo": 17661.71, "Desc": "Glovo 04MAY ZEREW", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/05/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 17653.29, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "03/05/2025", "Ingreso": 0.0, "Gasto": 66.8, "Saldo": 17654.28, "Desc": "LA CHESITA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/05/2025", "Ingreso": 0.0, "Gasto": 151.46, "Saldo": 17721.08, "Desc": "GOTTA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/05/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 17872.54, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "02/05/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 18087.53, "Desc": "1762 56 0004794 99 000005 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "02/05/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 18036.54, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "02/05/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 18086.54, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/05/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 18487.53, "Desc": "1762 56 0004065 30 000022 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/05/2025", "Ingreso": 1885.09, "Gasto": 0.0, "Saldo": 18837.53, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "27/04/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16952.44, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "27/04/2025", "Ingreso": 0.0, "Gasto": 9.0, "Saldo": 16932.44, "Desc": "PARKING SAN FRANC", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/04/2025", "Ingreso": 0.0, "Gasto": 6.0, "Saldo": 16941.44, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/04/2025", "Ingreso": 0.0, "Gasto": 11.4, "Saldo": 16947.44, "Desc": "LA NEVERA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/04/2025", "Ingreso": 0.0, "Gasto": 31.5, "Saldo": 16958.84, "Desc": "BAR PLAZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/04/2025", "Ingreso": 0.0, "Gasto": 6.91, "Saldo": 16990.34, "Desc": "CORP. ALIM. GUISS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/04/2025", "Ingreso": 0.0, "Gasto": 29.8, "Saldo": 16997.25, "Desc": "EXPENDIDURIA 58 E", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/04/2025", "Ingreso": 6.8, "Gasto": 0.0, "Saldo": 17027.05, "Desc": "Eva;Ferrando;Bordas", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "20/04/2025", "Ingreso": 6.8, "Gasto": 0.0, "Saldo": 17020.25, "Desc": "Carlos Jorge;Lopes;Silva", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "20/04/2025", "Ingreso": 13.6, "Gasto": 0.0, "Saldo": 17013.45, "Desc": "JOSE LUIS;MIR;PALOMO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "20/04/2025", "Ingreso": 6.8, "Gasto": 0.0, "Saldo": 16999.85, "Desc": "Carlos;Serrano;Garcia", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/04/2025", "Ingreso": 38.0, "Gasto": 0.0, "Saldo": 17074.45, "Desc": "Maria Pilar;Ferrer;Oliver", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "19/04/2025", "Ingreso": 0.0, "Gasto": 13.2, "Saldo": 17061.25, "Desc": "ALIMENTACION CAST", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/04/2025", "Ingreso": 0.0, "Gasto": 75.0, "Saldo": 16986.25, "Desc": "ALIMENTACION CARC", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/04/2025", "Ingreso": 6.8, "Gasto": 0.0, "Saldo": 16993.05, "Desc": "MIGUEL;GARGALLO;CUARTIELLES", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "18/04/2025", "Ingreso": 0.0, "Gasto": 12.0, "Saldo": 17036.45, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "18/04/2025", "Ingreso": 0.0, "Gasto": 3.6, "Saldo": 17048.45, "Desc": "BAR VENECIA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/04/2025", "Ingreso": 0.0, "Gasto": 10.8, "Saldo": 17052.05, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "16/04/2025", "Ingreso": 0.0, "Gasto": 254.73, "Saldo": 17062.85, "Desc": "ZALANDO PAYMENTS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "16/04/2025", "Ingreso": 0.0, "Gasto": 15.7, "Saldo": 17317.58, "Desc": "LA NEVERA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/04/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 17333.28, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "14/04/2025", "Ingreso": 0.0, "Gasto": 15.23, "Saldo": 17353.27, "Desc": "MI ALCAMPO ARZOBI", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/04/2025", "Ingreso": 0.0, "Gasto": 3.3, "Saldo": 17368.5, "Desc": "TRANVIA DE ZARAGO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/04/2025", "Ingreso": 0.0, "Gasto": 100.89, "Saldo": 17371.8, "Desc": "DECATHLON ZARAGOZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/04/2025", "Ingreso": 0.0, "Gasto": 6.5, "Saldo": 17472.69, "Desc": "THE CHAMPIONS BUR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "13/04/2025", "Ingreso": 0.0, "Gasto": 8.0, "Saldo": 17479.19, "Desc": "THE CHAMPIONS BUR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/04/2025", "Ingreso": 0.0, "Gasto": 14.95, "Saldo": 17487.19, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/04/2025", "Ingreso": 0.0, "Gasto": 23.5, "Saldo": 17502.14, "Desc": "FLEXOLUX ILUMINAC", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/04/2025", "Ingreso": 0.0, "Gasto": 25.0, "Saldo": 17525.64, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "10/04/2025", "Ingreso": 0.0, "Gasto": 15.83, "Saldo": 17550.64, "Desc": "BIP DRIVE SA", "Categoria": "Autopistas", "Tipo": "Variable"}, {"Fecha_Op": "09/04/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 17566.47, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "08/04/2025", "Ingreso": 0.0, "Gasto": 29.8, "Saldo": 17586.47, "Desc": "EXPENDIDURIA 58 E", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/04/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 17616.27, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "03/04/2025", "Ingreso": 0.0, "Gasto": 13.93, "Saldo": 17664.74, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/04/2025", "Ingreso": 0.0, "Gasto": 13.95, "Saldo": 17678.67, "Desc": "BAR BER", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/04/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 17692.62, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "02/04/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 17856.62, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "01/04/2025", "Ingreso": 1873.89, "Gasto": 0.0, "Saldo": 17906.62, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "01/04/2025", "Ingreso": 0.0, "Gasto": 27.99, "Saldo": 16032.73, "Desc": "SYNERGYM ZARAGOZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/04/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 16060.72, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/04/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16061.71, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/04/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 16041.71, "Desc": "1762 56 0004794 99 000004 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "31/03/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 16441.71, "Desc": "1762 56 0004065 30 000021 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "28/03/2025", "Ingreso": 0.0, "Gasto": 19.0, "Saldo": 16791.71, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "27/03/2025", "Ingreso": 0.0, "Gasto": 19.5, "Saldo": 16462.87, "Desc": "FERRETERIA ABAD", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/03/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16512.17, "Desc": "Guillermo;Martinez;Alcazar", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "27/03/2025", "Ingreso": 0.0, "Gasto": 29.8, "Saldo": 16482.37, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/03/2025", "Ingreso": 378.99, "Gasto": 0.0, "Saldo": 16841.86, "Desc": "FUTBOL SALA CASTELSERAS NOTPROVIDE", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "27/03/2025", "Ingreso": 0.0, "Gasto": 31.15, "Saldo": 16810.71, "Desc": "BAR LA CABAãA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/03/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16492.17, "Desc": "TATIANA CAROLINA;FERNANDEZ;FLATTARD", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "26/03/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16472.17, "Desc": "Patricia;Simon;Iglesias", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "26/03/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16452.17, "Desc": "DANIEL;ORTIZ SORIANO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "26/03/2025", "Ingreso": 0.0, "Gasto": 187.5, "Saldo": 16432.17, "Desc": "PANZZER GRILL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/03/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16619.67, "Desc": "LAURA;PELAYO;ABASCAL", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "26/03/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16599.67, "Desc": "Alejandro;Lahuerta;Pinilla", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "22/03/2025", "Ingreso": 0.0, "Gasto": 18.0, "Saldo": 16624.39, "Desc": "MONKEY ROOM", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/03/2025", "Ingreso": 0.0, "Gasto": 44.72, "Saldo": 16579.67, "Desc": "COREAYUNTAMIENTO DE CASTELSERAS", "Categoria": "Imp. circulación", "Tipo": "Fijo"}, {"Fecha_Op": "21/03/2025", "Ingreso": 0.0, "Gasto": 12.0, "Saldo": 16642.39, "Desc": "TARDEO ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/03/2025", "Ingreso": 0.0, "Gasto": 150.0, "Saldo": 16654.39, "Desc": "ALBERTO CARCELLER ORTEGA", "Categoria": "Gastos varios", "Tipo": "Variable"}, {"Fecha_Op": "19/03/2025", "Ingreso": 0.0, "Gasto": 6.1, "Saldo": 16804.39, "Desc": "EXPENDURIA DE TAB", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/03/2025", "Ingreso": 0.0, "Gasto": 23.76, "Saldo": 16810.49, "Desc": "GALERIA MUNDIAL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/03/2025", "Ingreso": 0.0, "Gasto": 16.99, "Saldo": 16834.25, "Desc": "AMAZON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "19/03/2025", "Ingreso": 0.0, "Gasto": 378.99, "Saldo": 16851.24, "Desc": "MEDIA MARKT ONLIN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/03/2025", "Ingreso": 0.0, "Gasto": 172.92, "Saldo": 17230.23, "Desc": "Zala ndo Pay", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/03/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 17403.15, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "14/03/2025", "Ingreso": 0.0, "Gasto": 12.79, "Saldo": 17423.14, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "14/03/2025", "Ingreso": 0.0, "Gasto": 29.7, "Saldo": 17435.93, "Desc": "HOTEL RTE GUADALO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/03/2025", "Ingreso": 0.0, "Gasto": 23.3, "Saldo": 17465.63, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/03/2025", "Ingreso": 0.0, "Gasto": 9.8, "Saldo": 17488.93, "Desc": "PIER RELAY 1917", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "07/03/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 17498.73, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "07/03/2025", "Ingreso": 0.0, "Gasto": 2.59, "Saldo": 17547.2, "Desc": "FITZKEY KU:RTO:SK", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/03/2025", "Ingreso": 0.0, "Gasto": 26.87, "Saldo": 17549.79, "Desc": "Kupak Bar Bistro", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/03/2025", "Ingreso": 0.0, "Gasto": 49.86, "Saldo": 17576.66, "Desc": "INCOGNITO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/03/2025", "Ingreso": 0.0, "Gasto": 37.86, "Saldo": 17631.71, "Desc": "12674152 MADHOUSE", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/03/2025", "Ingreso": 0.0, "Gasto": 5.19, "Saldo": 17626.52, "Desc": "HELOPAY*SZIMPLA K", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/03/2025", "Ingreso": 0.0, "Gasto": 4.95, "Saldo": 17669.57, "Desc": "WDFG BARCELONA T2", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/03/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 17674.52, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "04/03/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 17838.52, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "03/03/2025", "Ingreso": 1896.02, "Gasto": 0.0, "Saldo": 17888.52, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "03/03/2025", "Ingreso": 0.0, "Gasto": 3.89, "Saldo": 15992.5, "Desc": "BEAUTY BY DIA ZAR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/03/2025", "Ingreso": 0.0, "Gasto": 29.8, "Saldo": 15996.39, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/03/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 16026.19, "Desc": "1762 56 0004794 99 000003 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "02/03/2025", "Ingreso": 0.0, "Gasto": 23.0, "Saldo": 16776.19, "Desc": "A FUEGO LENTO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/03/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 16426.19, "Desc": "1762 56 0004065 30 000020 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/03/2025", "Ingreso": 0.0, "Gasto": 27.99, "Saldo": 16818.69, "Desc": "SYNERGYM ZARAGOZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/03/2025", "Ingreso": 0.0, "Gasto": 256.13, "Saldo": 16846.68, "Desc": "RENAULT ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/03/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 17102.81, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/03/2025", "Ingreso": 0.0, "Gasto": 19.5, "Saldo": 16799.19, "Desc": "LA NEVERA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/02/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 17103.8, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "27/02/2025", "Ingreso": 0.0, "Gasto": 80.0, "Saldo": 17083.8, "Desc": "www.headout.com", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/02/2025", "Ingreso": 0.0, "Gasto": 54.0, "Saldo": 17163.8, "Desc": "Civitatis Tours", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "26/02/2025", "Ingreso": 0.0, "Gasto": 28.0, "Saldo": 17217.8, "Desc": "www.headout.com", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/02/2025", "Ingreso": 0.0, "Gasto": 57.65, "Saldo": 17253.0, "Desc": "NOMADA RESTAURANT", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/02/2025", "Ingreso": 0.0, "Gasto": 7.2, "Saldo": 17245.8, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "20/02/2025", "Ingreso": 0.0, "Gasto": 5.03, "Saldo": 17310.65, "Desc": "EL RINCON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/02/2025", "Ingreso": 0.0, "Gasto": 40.99, "Saldo": 17315.68, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/02/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 17356.67, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "12/02/2025", "Ingreso": 0.0, "Gasto": 18.49, "Saldo": 17376.66, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/02/2025", "Ingreso": 0.0, "Gasto": 29.8, "Saldo": 17395.15, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/02/2025", "Ingreso": 0.0, "Gasto": 25.0, "Saldo": 17424.95, "Desc": "ALBERTO CARCELLER", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "06/02/2025", "Ingreso": 0.0, "Gasto": 48.47, "Saldo": 17449.95, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "05/02/2025", "Ingreso": 0.0, "Gasto": 218.19, "Saldo": 17498.42, "Desc": "CORERCI BANQUE S A., Sucursal en EspaNa", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "04/02/2025", "Ingreso": 0.0, "Gasto": 15.0, "Saldo": 17716.61, "Desc": "AMD BARBER SHOP", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "04/02/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 17895.61, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "04/02/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 17731.61, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "03/02/2025", "Ingreso": 1873.18, "Gasto": 0.0, "Saldo": 17945.61, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "03/02/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 16072.43, "Desc": "1762 56 0004794 99 000002 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/02/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 16472.43, "Desc": "1762 56 0004065 30 000019 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/02/2025", "Ingreso": 0.0, "Gasto": 27.99, "Saldo": 16822.43, "Desc": "SYNERGYM ZARAGOZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/02/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 16850.42, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "31/01/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 16851.41, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "30/01/2025", "Ingreso": 0.0, "Gasto": 29.8, "Saldo": 16821.26, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "30/01/2025", "Ingreso": 25.0, "Gasto": 0.0, "Saldo": 16831.41, "Desc": "CARCELLER ORTEGA ALBERTO 0073010063", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "30/01/2025", "Ingreso": 0.0, "Gasto": 14.85, "Saldo": 16806.41, "Desc": "PRIMAPRIX ZARAGOZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "27/01/2025", "Ingreso": 0.0, "Gasto": 20.0, "Saldo": 16851.06, "Desc": "APP EST.REGULADO", "Categoria": "Aparcamiento", "Tipo": "Fijo"}, {"Fecha_Op": "26/01/2025", "Ingreso": 0.0, "Gasto": 20.49, "Saldo": 16871.06, "Desc": "WWW.CD-KEYS.ONLIN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 24.8, "Gasto": 0.0, "Saldo": 16780.1, "Desc": "JOSE LUIS;MIR;PALOMO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 12.4, "Gasto": 0.0, "Saldo": 16792.5, "Desc": "Ines;Senante;Llombart", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 24.8, "Gasto": 0.0, "Saldo": 16842.1, "Desc": "Gerardo;Manero;Domene", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 24.8, "Gasto": 0.0, "Saldo": 16817.3, "Desc": "ALEJANDRO;GISBERT;SODRIC", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 24.8, "Gasto": 0.0, "Saldo": 16891.7, "Desc": "Mihaela Manuela;Muntean;Cozma", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 24.8, "Gasto": 0.0, "Saldo": 16866.9, "Desc": "Lucia;Albajez;Sancho", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 24.8, "Gasto": 0.0, "Saldo": 16916.5, "Desc": "SOFIA;CASAS;PARDO", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "25/01/2025", "Ingreso": 0.0, "Gasto": 24.95, "Saldo": 16891.55, "Desc": "Amazon Prime", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "24/01/2025", "Ingreso": 0.0, "Gasto": 235.5, "Saldo": 16755.3, "Desc": "PIZZERIA BAFFETTO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "24/01/2025", "Ingreso": 0.0, "Gasto": 13.94, "Saldo": 16990.8, "Desc": "MERCADONA ALCAãIZ", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/01/2025", "Ingreso": 0.0, "Gasto": 9.54, "Saldo": 17004.74, "Desc": "ALIMENTACION CARC", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "22/01/2025", "Ingreso": 0.0, "Gasto": 6.1, "Saldo": 17014.28, "Desc": "ADMINISTRACION LO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/01/2025", "Ingreso": 0.0, "Gasto": 131.94, "Saldo": 17020.38, "Desc": "ALVARO MORENO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "21/01/2025", "Ingreso": 0.0, "Gasto": 11.9, "Saldo": 17152.32, "Desc": "FARMACIA VICTORIA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "17/01/2025", "Ingreso": 0.0, "Gasto": 15.99, "Saldo": 17164.22, "Desc": "AMAZON", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "15/01/2025", "Ingreso": 0.0, "Gasto": 19.99, "Saldo": 17180.21, "Desc": "WWW.DAZN.COM", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "15/01/2025", "Ingreso": 0.0, "Gasto": 4.67, "Saldo": 17200.2, "Desc": "FRUTAS BOG", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/01/2025", "Ingreso": 0.0, "Gasto": 46.75, "Saldo": 17204.87, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "12/01/2025", "Ingreso": 0.0, "Gasto": 25.5, "Saldo": 17251.62, "Desc": "A FUEGO LENTO", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "11/01/2025", "Ingreso": 0.0, "Gasto": 38.6, "Saldo": 17277.12, "Desc": "LA NEVERA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/01/2025", "Ingreso": 0.0, "Gasto": 26.97, "Saldo": 17411.92, "Desc": "Parkos B.V.", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "09/01/2025", "Ingreso": 0.0, "Gasto": 96.2, "Saldo": 17315.72, "Desc": "RESTAURANTE MATAR", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "08/01/2025", "Ingreso": 0.0, "Gasto": 218.19, "Saldo": 17621.82, "Desc": "CORERCI BANQUE S A., Sucursal en EspaNa", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "08/01/2025", "Ingreso": 0.0, "Gasto": 182.93, "Saldo": 17438.89, "Desc": "Hotel at Booking.", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "06/01/2025", "Ingreso": 0.0, "Gasto": 45.67, "Saldo": 17840.01, "Desc": "COREMAPFRE", "Categoria": "Seguro coche", "Tipo": "Fijo"}, {"Fecha_Op": "06/01/2025", "Ingreso": 0.0, "Gasto": 24.94, "Saldo": 17885.68, "Desc": "UBER * EATS PEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "05/01/2025", "Ingreso": 150.0, "Gasto": 0.0, "Saldo": 17910.62, "Desc": "CARLOS;CARCELLER INSA", "Categoria": "Bizum", "Tipo": "Variable"}, {"Fecha_Op": "04/01/2025", "Ingreso": 0.0, "Gasto": 19.0, "Saldo": 17760.62, "Desc": "PUB CAMEL", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/01/2025", "Ingreso": 0.0, "Gasto": 164.0, "Saldo": 17811.42, "Desc": "COREEAE OSTELEA FORMACION ONLINE, SL", "Categoria": "Máster", "Tipo": "Fijo"}, {"Fecha_Op": "03/01/2025", "Ingreso": 0.0, "Gasto": 50.0, "Saldo": 17975.42, "Desc": "COREO2 FIBRA", "Categoria": "Móvil + Fibra", "Tipo": "Fijo"}, {"Fecha_Op": "03/01/2025", "Ingreso": 0.0, "Gasto": 14.0, "Saldo": 17797.42, "Desc": "ELENA ALCAZAR COS", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "03/01/2025", "Ingreso": 0.0, "Gasto": 17.8, "Saldo": 17779.62, "Desc": "RTE HUA LONG CHEN", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "02/01/2025", "Ingreso": 1754.99, "Gasto": 0.0, "Saldo": 18025.42, "Desc": "PRONIMETAL S L NOTPROVIDE", "Categoria": "Nomina", "Tipo": "Fijo"}, {"Fecha_Op": "02/01/2025", "Ingreso": 0.0, "Gasto": 400.0, "Saldo": 16270.43, "Desc": "1762 56 0004794 99 000001 000001 ALBERTO CA", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/01/2025", "Ingreso": 0.0, "Gasto": 350.0, "Saldo": 16670.43, "Desc": "1762 56 0004065 30 000018 000001 ALBERTO", "Categoria": "Transferencias", "Tipo": "Fijo"}, {"Fecha_Op": "01/01/2025", "Ingreso": 0.0, "Gasto": 0.99, "Saldo": 17020.43, "Desc": "APPLE.COM/BILL", "Categoria": "Plataformas digitales", "Tipo": "Fijo"}, {"Fecha_Op": "01/01/2025", "Ingreso": 0.0, "Gasto": 27.99, "Saldo": 17021.42, "Desc": "SYNERGYM ZARAGOZA", "Categoria": "Gasto tarjeta", "Tipo": "Variable"}, {"Fecha_Op": "01/01/2025", "Ingreso": 20.0, "Gasto": 0.0, "Saldo": 17049.41, "Desc": "Movistar EDUARDO CARCELLER", "Categoria": "Transferencias", "Tipo": "Fijo"}];
+const MONTHLY = [{"MesKey": "2025-01", "Mes": "Ene", "Ingresos": 2131.19, "Gastos": 2309.19}, {"MesKey": "2025-02", "Mes": "Feb", "Ingresos": 1893.18, "Gastos": 1640.79}, {"MesKey": "2025-03", "Mes": "Mar", "Ingresos": 2395.01, "Gastos": 3057.1}, {"MesKey": "2025-04", "Mes": "Abr", "Ingresos": 1992.69, "Gastos": 1481.96}, {"MesKey": "2025-05", "Mes": "May", "Ingresos": 2171.8599999999997, "Gastos": 2393.9}, {"MesKey": "2025-06", "Mes": "Jun", "Ingresos": 4296.110000000001, "Gastos": 2355.34}, {"MesKey": "2025-07", "Mes": "Jul", "Ingresos": 22280.95, "Gastos": 10366.39}, {"MesKey": "2025-08", "Mes": "Ago", "Ingresos": 203998.43, "Gastos": 224446.30000000002}, {"MesKey": "2025-09", "Mes": "Sep", "Ingresos": 3311.12, "Gastos": 6834.49}, {"MesKey": "2025-10", "Mes": "Oct", "Ingresos": 5283.66, "Gastos": 3711.79}, {"MesKey": "2025-11", "Mes": "Nov", "Ingresos": 2839.4, "Gastos": 4726.04}, {"MesKey": "2025-12", "Mes": "Dic", "Ingresos": 2554.73, "Gastos": 1310.54}];
+const MONTHLY_TIPO = [{"MesKey": "2025-01", "Mes": "Ene", "Fijo": 1293.79, "Variable": 1015.4}, {"MesKey": "2025-02", "Mes": "Feb", "Fijo": 1251.6399999999999, "Variable": 389.15}, {"MesKey": "2025-03", "Mes": "Mar", "Fijo": 1428.17, "Variable": 1628.93}, {"MesKey": "2025-04", "Mes": "Abr", "Fijo": 703.45, "Variable": 778.51}, {"MesKey": "2025-05", "Mes": "May", "Fijo": 1197.3, "Variable": 1196.6}, {"MesKey": "2025-06", "Mes": "Jun", "Fijo": 1501.73, "Variable": 853.61}, {"MesKey": "2025-07", "Mes": "Jul", "Fijo": 1033.45, "Variable": 9332.94}, {"MesKey": "2025-08", "Mes": "Ago", "Fijo": 675.76, "Variable": 223770.53999999998}, {"MesKey": "2025-09", "Mes": "Sep", "Fijo": 1665.01, "Variable": 5169.48}, {"MesKey": "2025-10", "Mes": "Oct", "Fijo": 1674.87, "Variable": 2036.9199999999998}, {"MesKey": "2025-11", "Mes": "Nov", "Fijo": 1953.72, "Variable": 2772.32}, {"MesKey": "2025-12", "Mes": "Dic", "Fijo": 1173.12, "Variable": 137.42000000000002}];
+const CAT_G_DATA = [{"Categoria": "Compra vivienda", "Tipo": "Variable", "Gasto": 215000.0}, {"Categoria": "Gasto tarjeta", "Tipo": "Variable", "Gasto": 22091.04}, {"Categoria": "Transferencias", "Tipo": "Fijo", "Gasto": 9000.0}, {"Categoria": "Bizum", "Tipo": "Variable", "Gasto": 6198.42}, {"Categoria": "Gastos varios", "Tipo": "Variable", "Gasto": 5136.36}, {"Categoria": "Hipoteca", "Tipo": "Fijo", "Gasto": 1951.9}, {"Categoria": "Máster", "Tipo": "Fijo", "Gasto": 1148.0}, {"Categoria": "Seguro coche", "Tipo": "Fijo", "Gasto": 966.74}, {"Categoria": "Móvil + Fibra", "Tipo": "Fijo", "Gasto": 600.0}, {"Categoria": "Gasolina", "Tipo": "Fijo", "Gasto": 536.77}, {"Categoria": "Seguros", "Tipo": "Fijo", "Gasto": 486.06}, {"Categoria": "Plataformas digitales", "Tipo": "Fijo", "Gasto": 300.36999999999995}, {"Categoria": "Tasación", "Tipo": "Variable", "Gasto": 293.06}, {"Categoria": "Comunidad", "Tipo": "Fijo", "Gasto": 242.45}, {"Categoria": "Estanco", "Tipo": "Variable", "Gasto": 220.15}, {"Categoria": "Aparcamiento", "Tipo": "Fijo", "Gasto": 175.0}, {"Categoria": "Autopistas", "Tipo": "Variable", "Gasto": 142.79000000000002}, {"Categoria": "Cuenta común", "Tipo": "Fijo", "Gasto": 100.0}, {"Categoria": "Imp. circulación", "Tipo": "Fijo", "Gasto": 44.72}];
+const CAT_I_DATA = [{"Categoria": "Prestamo", "Tipo": "Variable", "Ingreso": 156150.0}, {"Categoria": "Donación", "Tipo": "Variable", "Ingreso": 65000.0}, {"Categoria": "Nomina", "Tipo": "Fijo", "Ingreso": 26401.15}, {"Categoria": "Devoluciones", "Tipo": "Variable", "Ingreso": 3808.59}, {"Categoria": "Bizum", "Tipo": "Variable", "Ingreso": 3547.6}, {"Categoria": "Transferencias", "Tipo": "Fijo", "Ingreso": 240.0}, {"Categoria": "Otros ingresos", "Tipo": "Variable", "Ingreso": 0.99}];
+const SALDO_DATA = [{"Fecha_Op": "2025-01-01", "Saldo": 17020.43}, {"Fecha_Op": "2025-01-02", "Saldo": 18025.42}, {"Fecha_Op": "2025-01-03", "Saldo": 17779.62}, {"Fecha_Op": "2025-01-04", "Saldo": 17760.62}, {"Fecha_Op": "2025-01-05", "Saldo": 17910.62}, {"Fecha_Op": "2025-01-06", "Saldo": 17840.01}, {"Fecha_Op": "2025-01-08", "Saldo": 17438.89}, {"Fecha_Op": "2025-01-09", "Saldo": 17315.72}, {"Fecha_Op": "2025-01-11", "Saldo": 17277.12}, {"Fecha_Op": "2025-01-12", "Saldo": 17204.87}, {"Fecha_Op": "2025-01-15", "Saldo": 17200.2}, {"Fecha_Op": "2025-01-17", "Saldo": 17164.22}, {"Fecha_Op": "2025-01-21", "Saldo": 17020.38}, {"Fecha_Op": "2025-01-22", "Saldo": 17004.74}, {"Fecha_Op": "2025-01-24", "Saldo": 16755.3}, {"Fecha_Op": "2025-01-25", "Saldo": 16891.55}, {"Fecha_Op": "2025-01-26", "Saldo": 16871.06}, {"Fecha_Op": "2025-01-27", "Saldo": 16851.06}, {"Fecha_Op": "2025-01-30", "Saldo": 16806.41}, {"Fecha_Op": "2025-01-31", "Saldo": 16851.41}, {"Fecha_Op": "2025-02-01", "Saldo": 16472.43}, {"Fecha_Op": "2025-02-03", "Saldo": 17945.61}, {"Fecha_Op": "2025-02-04", "Saldo": 17716.61}, {"Fecha_Op": "2025-02-05", "Saldo": 17498.42}, {"Fecha_Op": "2025-02-06", "Saldo": 17449.95}, {"Fecha_Op": "2025-02-08", "Saldo": 17424.95}, {"Fecha_Op": "2025-02-12", "Saldo": 17376.66}, {"Fecha_Op": "2025-02-15", "Saldo": 17356.67}, {"Fecha_Op": "2025-02-17", "Saldo": 17315.68}, {"Fecha_Op": "2025-02-20", "Saldo": 17310.65}, {"Fecha_Op": "2025-02-21", "Saldo": 17245.8}, {"Fecha_Op": "2025-02-26", "Saldo": 17217.8}, {"Fecha_Op": "2025-02-27", "Saldo": 17103.8}, {"Fecha_Op": "2025-03-01", "Saldo": 16799.19}, {"Fecha_Op": "2025-03-02", "Saldo": 16426.19}, {"Fecha_Op": "2025-03-03", "Saldo": 15992.5}, {"Fecha_Op": "2025-03-04", "Saldo": 17838.52}, {"Fecha_Op": "2025-03-05", "Saldo": 17626.52}, {"Fecha_Op": "2025-03-06", "Saldo": 17549.79}, {"Fecha_Op": "2025-03-07", "Saldo": 17498.73}, {"Fecha_Op": "2025-03-08", "Saldo": 17465.63}, {"Fecha_Op": "2025-03-14", "Saldo": 17423.14}, {"Fecha_Op": "2025-03-15", "Saldo": 17403.15}, {"Fecha_Op": "2025-03-17", "Saldo": 17230.23}, {"Fecha_Op": "2025-03-19", "Saldo": 16851.24}, {"Fecha_Op": "2025-03-21", "Saldo": 16642.39}, {"Fecha_Op": "2025-03-22", "Saldo": 16579.67}, {"Fecha_Op": "2025-03-26", "Saldo": 16492.17}, {"Fecha_Op": "2025-03-27", "Saldo": 16482.37}, {"Fecha_Op": "2025-03-28", "Saldo": 16791.71}, {"Fecha_Op": "2025-03-31", "Saldo": 16441.71}, {"Fecha_Op": "2025-04-01", "Saldo": 17906.62}, {"Fecha_Op": "2025-04-02", "Saldo": 17692.62}, {"Fecha_Op": "2025-04-03", "Saldo": 17664.74}, {"Fecha_Op": "2025-04-04", "Saldo": 17616.27}, {"Fecha_Op": "2025-04-08", "Saldo": 17586.47}, {"Fecha_Op": "2025-04-09", "Saldo": 17566.47}, {"Fecha_Op": "2025-04-10", "Saldo": 17550.64}, {"Fecha_Op": "2025-04-12", "Saldo": 17525.64}, {"Fecha_Op": "2025-04-13", "Saldo": 17371.8}, {"Fecha_Op": "2025-04-14", "Saldo": 17353.27}, {"Fecha_Op": "2025-04-15", "Saldo": 17333.28}, {"Fecha_Op": "2025-04-16", "Saldo": 17062.85}, {"Fecha_Op": "2025-04-17", "Saldo": 17052.05}, {"Fecha_Op": "2025-04-18", "Saldo": 17036.45}, {"Fecha_Op": "2025-04-19", "Saldo": 17074.45}, {"Fecha_Op": "2025-04-20", "Saldo": 17020.25}, {"Fecha_Op": "2025-04-24", "Saldo": 16990.34}, {"Fecha_Op": "2025-04-25", "Saldo": 16947.44}, {"Fecha_Op": "2025-04-26", "Saldo": 16941.44}, {"Fecha_Op": "2025-04-27", "Saldo": 16952.44}, {"Fecha_Op": "2025-05-01", "Saldo": 18487.53}, {"Fecha_Op": "2025-05-02", "Saldo": 18036.54}, {"Fecha_Op": "2025-05-03", "Saldo": 17653.29}, {"Fecha_Op": "2025-05-04", "Saldo": 17643.29}, {"Fecha_Op": "2025-05-05", "Saldo": 17674.51}, {"Fecha_Op": "2025-05-06", "Saldo": 17675.5}, {"Fecha_Op": "2025-05-07", "Saldo": 17597.13}, {"Fecha_Op": "2025-05-08", "Saldo": 17531.13}, {"Fecha_Op": "2025-05-09", "Saldo": 17490.68}, {"Fecha_Op": "2025-05-10", "Saldo": 17326.71}, {"Fecha_Op": "2025-05-11", "Saldo": 17168.23}, {"Fecha_Op": "2025-05-12", "Saldo": 17154.28}, {"Fecha_Op": "2025-05-13", "Saldo": 17149.09}, {"Fecha_Op": "2025-05-14", "Saldo": 17069.09}, {"Fecha_Op": "2025-05-15", "Saldo": 17058.88}, {"Fecha_Op": "2025-05-16", "Saldo": 16985.53}, {"Fecha_Op": "2025-05-17", "Saldo": 16935.99}, {"Fecha_Op": "2025-05-23", "Saldo": 16881.19}, {"Fecha_Op": "2025-05-24", "Saldo": 16869.61}, {"Fecha_Op": "2025-05-26", "Saldo": 16863.21}, {"Fecha_Op": "2025-05-28", "Saldo": 16840.11}, {"Fecha_Op": "2025-05-29", "Saldo": 16780.11}, {"Fecha_Op": "2025-05-31", "Saldo": 16730.4}, {"Fecha_Op": "2025-06-01", "Saldo": 16370.1}, {"Fecha_Op": "2025-06-02", "Saldo": 18160.75}, {"Fecha_Op": "2025-06-03", "Saldo": 17929.8}, {"Fecha_Op": "2025-06-04", "Saldo": 17877.0}, {"Fecha_Op": "2025-06-05", "Saldo": 17822.84}, {"Fecha_Op": "2025-06-06", "Saldo": 17762.84}, {"Fecha_Op": "2025-06-08", "Saldo": 17742.86}, {"Fecha_Op": "2025-06-09", "Saldo": 17694.39}, {"Fecha_Op": "2025-06-10", "Saldo": 17601.54}, {"Fecha_Op": "2025-06-11", "Saldo": 17478.59}, {"Fecha_Op": "2025-06-12", "Saldo": 17464.84}, {"Fecha_Op": "2025-06-13", "Saldo": 17460.34}, {"Fecha_Op": "2025-06-14", "Saldo": 17452.84}, {"Fecha_Op": "2025-06-16", "Saldo": 19319.81}, {"Fecha_Op": "2025-06-18", "Saldo": 19317.21}, {"Fecha_Op": "2025-06-20", "Saldo": 19323.21}, {"Fecha_Op": "2025-06-21", "Saldo": 19263.21}, {"Fecha_Op": "2025-06-22", "Saldo": 19235.19}, {"Fecha_Op": "2025-06-23", "Saldo": 19210.1}, {"Fecha_Op": "2025-06-24", "Saldo": 19188.67}, {"Fecha_Op": "2025-06-25", "Saldo": 19168.67}, {"Fecha_Op": "2025-06-26", "Saldo": 19133.17}, {"Fecha_Op": "2025-06-27", "Saldo": 19069.17}, {"Fecha_Op": "2025-06-28", "Saldo": 19047.17}, {"Fecha_Op": "2025-06-29", "Saldo": 19021.17}, {"Fecha_Op": "2025-07-01", "Saldo": 20480.83}, {"Fecha_Op": "2025-07-02", "Saldo": 20357.68}, {"Fecha_Op": "2025-07-03", "Saldo": 20163.88}, {"Fecha_Op": "2025-07-04", "Saldo": 20148.88}, {"Fecha_Op": "2025-07-06", "Saldo": 20142.68}, {"Fecha_Op": "2025-07-07", "Saldo": 20130.8}, {"Fecha_Op": "2025-07-08", "Saldo": 20038.15}, {"Fecha_Op": "2025-07-09", "Saldo": 17038.15}, {"Fecha_Op": "2025-07-10", "Saldo": 17028.55}, {"Fecha_Op": "2025-07-11", "Saldo": 16991.65}, {"Fecha_Op": "2025-07-12", "Saldo": 16960.19}, {"Fecha_Op": "2025-07-14", "Saldo": 16926.19}, {"Fecha_Op": "2025-07-15", "Saldo": 16906.2}, {"Fecha_Op": "2025-07-16", "Saldo": 16819.41}, {"Fecha_Op": "2025-07-17", "Saldo": 16795.66}, {"Fecha_Op": "2025-07-18", "Saldo": 36795.66}, {"Fecha_Op": "2025-07-19", "Saldo": 36755.56}, {"Fecha_Op": "2025-07-20", "Saldo": 36773.96}, {"Fecha_Op": "2025-07-21", "Saldo": 31750.69}, {"Fecha_Op": "2025-07-22", "Saldo": 31451.43}, {"Fecha_Op": "2025-07-23", "Saldo": 31189.18}, {"Fecha_Op": "2025-07-24", "Saldo": 31180.18}, {"Fecha_Op": "2025-07-25", "Saldo": 31177.18}, {"Fecha_Op": "2025-07-26", "Saldo": 31129.68}, {"Fecha_Op": "2025-07-27", "Saldo": 30949.68}, {"Fecha_Op": "2025-07-30", "Saldo": 30935.73}, {"Fecha_Op": "2025-07-31", "Saldo": 30585.73}, {"Fecha_Op": "2025-08-01", "Saldo": 30204.74}, {"Fecha_Op": "2025-08-02", "Saldo": 32304.47}, {"Fecha_Op": "2025-08-05", "Saldo": 32264.47}, {"Fecha_Op": "2025-08-06", "Saldo": 32224.47}, {"Fecha_Op": "2025-08-08", "Saldo": 32100.8}, {"Fecha_Op": "2025-08-10", "Saldo": 32172.8}, {"Fecha_Op": "2025-08-11", "Saldo": 32159.7}, {"Fecha_Op": "2025-08-12", "Saldo": 32023.92}, {"Fecha_Op": "2025-08-13", "Saldo": 31722.42}, {"Fecha_Op": "2025-08-14", "Saldo": 31707.38}, {"Fecha_Op": "2025-08-15", "Saldo": 31663.38}, {"Fecha_Op": "2025-08-16", "Saldo": 31454.68}, {"Fecha_Op": "2025-08-17", "Saldo": 76150.82}, {"Fecha_Op": "2025-08-18", "Saldo": 76134.05}, {"Fecha_Op": "2025-08-19", "Saldo": 75910.05}, {"Fecha_Op": "2025-08-20", "Saldo": 75906.55}, {"Fecha_Op": "2025-08-21", "Saldo": 75859.78}, {"Fecha_Op": "2025-08-24", "Saldo": 75849.78}, {"Fecha_Op": "2025-08-25", "Saldo": 75381.58}, {"Fecha_Op": "2025-08-26", "Saldo": 75282.86}, {"Fecha_Op": "2025-08-27", "Saldo": 75282.5}, {"Fecha_Op": "2025-08-28", "Saldo": 11445.35}, {"Fecha_Op": "2025-08-29", "Saldo": 10207.72}, {"Fecha_Op": "2025-08-30", "Saldo": 10137.86}, {"Fecha_Op": "2025-09-01", "Saldo": 9387.86}, {"Fecha_Op": "2025-09-02", "Saldo": 10637.29}, {"Fecha_Op": "2025-09-03", "Saldo": 10540.76}, {"Fecha_Op": "2025-09-04", "Saldo": 8578.98}, {"Fecha_Op": "2025-09-05", "Saldo": 8528.48}, {"Fecha_Op": "2025-09-06", "Saldo": 8483.62}, {"Fecha_Op": "2025-09-07", "Saldo": 8435.15}, {"Fecha_Op": "2025-09-09", "Saldo": 8238.62}, {"Fecha_Op": "2025-09-10", "Saldo": 8136.58}, {"Fecha_Op": "2025-09-11", "Saldo": 8152.36}, {"Fecha_Op": "2025-09-13", "Saldo": 8111.61}, {"Fecha_Op": "2025-09-16", "Saldo": 8076.62}, {"Fecha_Op": "2025-09-17", "Saldo": 9134.27}, {"Fecha_Op": "2025-09-18", "Saldo": 7608.76}, {"Fecha_Op": "2025-09-20", "Saldo": 7592.28}, {"Fecha_Op": "2025-09-22", "Saldo": 7578.18}, {"Fecha_Op": "2025-09-23", "Saldo": 7525.52}, {"Fecha_Op": "2025-09-26", "Saldo": 7498.16}, {"Fecha_Op": "2025-09-27", "Saldo": 7262.83}, {"Fecha_Op": "2025-09-28", "Saldo": 7253.23}, {"Fecha_Op": "2025-09-30", "Saldo": 6614.49}, {"Fecha_Op": "2025-10-01", "Saldo": 6264.49}, {"Fecha_Op": "2025-10-02", "Saldo": 7819.25}, {"Fecha_Op": "2025-10-03", "Saldo": 7740.8}, {"Fecha_Op": "2025-10-04", "Saldo": 7655.8}, {"Fecha_Op": "2025-10-05", "Saldo": 8342.63}, {"Fecha_Op": "2025-10-06", "Saldo": 8294.16}, {"Fecha_Op": "2025-10-08", "Saldo": 8260.16}, {"Fecha_Op": "2025-10-09", "Saldo": 8192.46}, {"Fecha_Op": "2025-10-11", "Saldo": 8342.46}, {"Fecha_Op": "2025-10-12", "Saldo": 8258.57}, {"Fecha_Op": "2025-10-14", "Saldo": 8233.57}, {"Fecha_Op": "2025-10-15", "Saldo": 8195.83}, {"Fecha_Op": "2025-10-16", "Saldo": 8148.83}, {"Fecha_Op": "2025-10-17", "Saldo": 8118.42}, {"Fecha_Op": "2025-10-18", "Saldo": 7945.54}, {"Fecha_Op": "2025-10-20", "Saldo": 7923.38}, {"Fecha_Op": "2025-10-22", "Saldo": 7891.39}, {"Fecha_Op": "2025-10-27", "Saldo": 6715.68}, {"Fecha_Op": "2025-10-28", "Saldo": 6615.23}, {"Fecha_Op": "2025-10-30", "Saldo": 8825.1}, {"Fecha_Op": "2025-10-31", "Saldo": 8186.36}, {"Fecha_Op": "2025-11-01", "Saldo": 8075.69}, {"Fecha_Op": "2025-11-02", "Saldo": 7640.2}, {"Fecha_Op": "2025-11-03", "Saldo": 7235.21}, {"Fecha_Op": "2025-11-04", "Saldo": 7535.21}, {"Fecha_Op": "2025-11-07", "Saldo": 7385.86}, {"Fecha_Op": "2025-11-08", "Saldo": 7235.2}, {"Fecha_Op": "2025-11-09", "Saldo": 7164.49}, {"Fecha_Op": "2025-11-10", "Saldo": 7155.02}, {"Fecha_Op": "2025-11-11", "Saldo": 6597.37}, {"Fecha_Op": "2025-11-12", "Saldo": 5913.55}, {"Fecha_Op": "2025-11-13", "Saldo": 5928.05}, {"Fecha_Op": "2025-11-16", "Saldo": 7125.88}, {"Fecha_Op": "2025-11-17", "Saldo": 7195.46}, {"Fecha_Op": "2025-11-18", "Saldo": 7180.96}, {"Fecha_Op": "2025-11-20", "Saldo": 7187.96}, {"Fecha_Op": "2025-11-21", "Saldo": 6917.54}, {"Fecha_Op": "2025-11-22", "Saldo": 6767.54}, {"Fecha_Op": "2025-11-23", "Saldo": 6749.84}, {"Fecha_Op": "2025-11-25", "Saldo": 6750.72}, {"Fecha_Op": "2025-11-27", "Saldo": 7160.39}, {"Fecha_Op": "2025-11-29", "Saldo": 6299.72}, {"Fecha_Op": "2025-12-01", "Saldo": 5419.05}, {"Fecha_Op": "2025-12-02", "Saldo": 7603.03}, {"Fecha_Op": "2025-12-03", "Saldo": 7571.41}, {"Fecha_Op": "2025-12-04", "Saldo": 7551.41}, {"Fecha_Op": "2025-12-05", "Saldo": 7543.91}];
+const FIXED_CATS = {"Gasto tarjeta": 76.7, "Móvil + Fibra": 50.0, "Seguros": 81.01, "Plataformas digitales": 11.55, "Hipoteca": 487.98, "Estanco": 24.46, "Gasolina": 41.29, "Aparcamiento": 19.44, "Autopistas": 23.8, "Seguro coche": 74.36, "Máster": 164.0};
+const CAT_AVG = {"Gasto tarjeta": 1840.92, "Bizum": 563.49, "Comunidad": 242.45, "Móvil + Fibra": 50.0, "Seguros": 97.21, "Plataformas digitales": 25.03, "Transferencias": 750.0, "Hipoteca": 487.98, "Estanco": 55.04, "Gasolina": 107.35, "Aparcamiento": 21.88, "Autopistas": 23.8, "Cuenta común": 100.0, "Seguro coche": 87.89, "Gastos varios": 2568.18, "Tasación": 293.06, "Máster": 164.0, "Imp. circulación": 44.72};
+const CAT_TIPO = {"Nomina": "Fijo", "Devoluciones": "Variable", "Transferencias": "Fijo", "Bizum": "Variable", "Donación": "Variable", "Prestamo": "Variable", "Gastos varios": "Variable", "Comunidad": "Fijo", "Móvil + Fibra": "Fijo", "Seguros": "Fijo", "Hipoteca": "Fijo", "Seguro coche": "Fijo", "Tasación": "Variable", "Imp. circulación": "Fijo", "Máster": "Fijo", "Gasto tarjeta": "Variable", "Aparcamiento": "Fijo", "Plataformas digitales": "Fijo", "Cuenta común": "Fijo", "Autopistas": "Variable", "Estanco": "Variable", "Gasolina": "Fijo", "Compra vivienda": "Variable"};
+const TOTALES_TIPO = {"Fijo": 15552.01, "Variable": 249081.82};
+
+const GASTO_CATS = Object.keys(CAT_TIPO).filter(c=>['Gastos varios','Comunidad','Móvil + Fibra','Seguros','Transferencias','Hipoteca','Seguro coche','Bizum','Tasación','Imp. circulación','Máster','Gasto tarjeta','Aparcamiento','Plataformas digitales','Cuenta común','Autopistas','Estanco','Gasolina','Compra vivienda'].includes(c));
+const INGRESO_CATS = ['Nomina','Devoluciones','Bizum','Transferencias','Donación','Prestamo','Otros ingresos'];
+
+const GASTO_COLORS = {
+  'Gasto tarjeta':'#3b82f6','Transferencias':'#f43f5e','Bizum':'#f59e0b',
+  'Gastos varios':'#64748b','Hipoteca':'#ef4444','Máster':'#8b5cf6',
+  'Seguro coche':'#14b8a6','Móvil + Fibra':'#06b6d4','Gasolina':'#f97316',
+  'Seguros':'#a78bfa','Plataformas digitales':'#818cf8','Tasación':'#94a3b8',
+  'Comunidad':'#fbbf24','Estanco':'#d97706','Aparcamiento':'#84cc16',
+  'Autopistas':'#22c55e','Cuenta común':'#ec4899','Imp. circulación':'#6366f1',
+  'Compra vivienda':'#dc2626','Otros gastos':'#475569'
+};
+const INGRESO_COLORS = {
+  'Prestamo':'#14b8a6','Donación':'#8b5cf6','Nomina':'#10b981',
+  'Devoluciones':'#3b82f6','Bizum':'#f59e0b','Transferencias':'#94a3b8',
+  'Otros ingresos':'#64748b'
+};
+const CAT_ICONS = {
+  'Nomina':'💼','Devoluciones':'↩️','Transferencias':'📤','Bizum':'📱','Donación':'🎁',
+  'Prestamo':'🏦','Hipoteca':'🏠','Comunidad':'🏘️','Móvil + Fibra':'📡',
+  'Seguros':'🛡️','Gasto tarjeta':'🛒','Aparcamiento':'🅿️','Plataformas digitales':'📺',
+  'Cuenta común':'💳','Autopistas':'🛣️','Estanco':'🚬','Gasolina':'⛽',
+  'Compra vivienda':'🔑','Seguro coche':'🚗','Tasación':'📋','Máster':'🎓',
+  'Gastos varios':'📦','Imp. circulación':'📄','Otros gastos':'📋',
+  'Otros ingresos':'💰','Sin clasificar':'❓'
+};
+
+// Date ranges (hardcoded based on data spanning 2025)
+const TODAY = new Date('2025-12-05');
+const RANGES = [
+  {key:'mes', label:'Este mes', start:new Date('2025-12-01'), end:new Date('2025-12-31')},
+  {key:'30d', label:'Últimos 30 días', start:new Date('2025-11-05'), end:new Date('2025-12-05')},
+  {key:'3m', label:'3 meses', start:new Date('2025-09-05'), end:new Date('2025-12-05')},
+  {key:'6m', label:'6 meses', start:new Date('2025-06-05'), end:new Date('2025-12-05')},
+  {key:'year', label:'Este año', start:new Date('2025-01-01'), end:new Date('2025-12-31')},
+  {key:'all', label:'Todo', start:new Date('2020-01-01'), end:new Date('2030-01-01')},
+];
+
+// ═══ MANUAL ENTRIES ══════════════════════════════════════
+function loadManual(){ try{ return JSON.parse(localStorage.getItem('finanzas_manual')||'[]'); }catch(e){return [];} }
+function saveManual(arr){ localStorage.setItem('finanzas_manual',JSON.stringify(arr)); }
+let MANUAL = loadManual();
+
+function getAllRows(){
+  const manualRows = MANUAL.map(m => ({
+    Fecha_Op: m.fecha.slice(8,10)+'/'+m.fecha.slice(5,7)+'/'+m.fecha.slice(0,4),
+    Ingreso: m.tipo==='i'? parseFloat(m.importe):0,
+    Gasto:   m.tipo==='g'? parseFloat(m.importe):0,
+    Saldo: null,
+    Desc: m.desc || m.cat,
+    Categoria: m.cat,
+    Tipo: m.tipoFV || 'Variable',
+    _manual: true,
+    _id: m.id,
+    _hora: m.hora,
+    _nota: m.nota
+  }));
+  return [...BANK_ROWS, ...manualRows].sort((a,b)=>{
+    const da=a.Fecha_Op.slice(6)+a.Fecha_Op.slice(3,5)+a.Fecha_Op.slice(0,2);
+    const db=b.Fecha_Op.slice(6)+b.Fecha_Op.slice(3,5)+b.Fecha_Op.slice(0,2);
+    return db.localeCompare(da);
+  });
+}
+
+const fmt  = n => parseFloat(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtK = n => Math.abs(n)>=1000?(n/1000).toFixed(1)+'k':fmt(n);
+
+function parseDate(s){ // dd/mm/yyyy -> Date
+  return new Date(s.slice(6)+'-'+s.slice(3,5)+'-'+s.slice(0,2));
+}
+
+let page=1, perPage=20, mesActivo='';
+let activeRange='year';
+let charts={};
+let modalType='g';
+
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); charts[key]=null; } }
+
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='analisis') renderAnalisis();
+  if(id==='prev') buildForecast();
+  if(id==='plan') renderPlan();
+  document.getElementById('fabBtn').style.display = (id==='prev'||id==='analisis'||id==='plan')?'none':'flex';
+}
+
+// ═══ RESUMEN ═════════════════════════════════════════════
+function buildResumen(){
+  const all = getAllRows();
+  const totalI = all.reduce((s,r)=>s+r.Ingreso,0);
+  const totalG = all.reduce((s,r)=>s+r.Gasto,0);
+  const manualNet = MANUAL.reduce((s,m)=>s+(m.tipo==='i'?parseFloat(m.importe):-parseFloat(m.importe)),0);
+  const lastBank = SALDO_DATA.length ? SALDO_DATA[SALDO_DATA.length-1].Saldo : 0;
+  const saldoActual = lastBank + manualNet;
+  document.getElementById('saldo-display').textContent = fmt(saldoActual)+' €';
+  document.getElementById('kpi-grid').innerHTML=`
+    <div class="kpi"><div class="lbl">Total ingresos</div><div class="val g">${fmtK(totalI)} €</div><div class="sub">Año + manuales</div></div>
+    <div class="kpi"><div class="lbl">Total gastos</div><div class="val r">${fmtK(totalG)} €</div><div class="sub">Año + manuales</div></div>
+    <div class="kpi"><div class="lbl">Gastos fijos</div><div class="val fijo-c">${fmtK(TOTALES_TIPO.Fijo)} €</div><div class="sub">Año 2025</div></div>
+    <div class="kpi"><div class="lbl">Gastos variables</div><div class="val var-c">${fmtK(TOTALES_TIPO.Variable)} €</div><div class="sub">Año 2025</div></div>
+  `;
+}
+
+function buildSaldoChart(){
+  destroyChart('saldo');
+  charts.saldo = new Chart(document.getElementById('cSaldo'),{
+    type:'line',
+    data:{labels:SALDO_DATA.map(s=>s.Fecha_Op.slice(5)),
+      datasets:[{data:SALDO_DATA.map(s=>s.Saldo),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €`}}},
+      scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}
+    }
+  });
+}
+
+function buildMensualChart(){
+  destroyChart('mensual');
+  const cap=15000;
+  charts.mensual = new Chart(document.getElementById('cMensual'),{
+    type:'bar',
+    data:{labels:MONTHLY.map(m=>m.Mes),
+      datasets:[
+        {label:'Ingresos',data:MONTHLY.map(m=>Math.min(m.Ingresos,cap)),backgroundColor:'rgba(16,185,129,0.75)',borderRadius:3},
+        {label:'Gastos',data:MONTHLY.map(m=>Math.min(m.Gastos,cap)),backgroundColor:'rgba(244,63,94,0.75)',borderRadius:3}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10},autoSkip:false,maxRotation:0}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}
+    }
+  });
+}
+
+// ═══ ANÁLISIS FIJO/VARIABLE ══════════════════════════════
+function buildRangeButtons(){
+  document.getElementById('rangeGrid').innerHTML = RANGES.map(r=>
+    `<button class="range-btn${r.key===activeRange?' active':''}" onclick="setRange('${r.key}',this)">${r.label}</button>`
+  ).join('');
+}
+
+function setRange(key, btn){
+  activeRange=key;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAnalisis();
+}
+
+function renderAnalisis(){
+  buildRangeButtons();
+  const range = RANGES.find(r=>r.key===activeRange);
+  const all = getAllRows().filter(r=>r.Gasto>0);
+  const inRange = all.filter(r=>{
+    const d = parseDate(r.Fecha_Op);
+    return d>=range.start && d<=range.end;
+  });
+
+  let totalFijo=0, totalVar=0;
+  const fijoCat={}, varCat={};
+  inRange.forEach(r=>{
+    const tipo = r.Tipo==='Fijo'?'Fijo':'Variable';
+    if(tipo==='Fijo'){
+      totalFijo+=r.Gasto;
+      fijoCat[r.Categoria]=(fijoCat[r.Categoria]||0)+r.Gasto;
+    } else {
+      totalVar+=r.Gasto;
+      varCat[r.Categoria]=(varCat[r.Categoria]||0)+r.Gasto;
+    }
+  });
+  const total=totalFijo+totalVar;
+  const pctF = total>0?(totalFijo/total*100):0;
+  const pctV = total>0?(totalVar/total*100):0;
+
+  document.getElementById('tot-fijo').textContent = fmt(totalFijo)+' €';
+  document.getElementById('tot-var').textContent  = fmt(totalVar)+' €';
+  document.getElementById('pct-fijo').textContent = pctF.toFixed(1)+'% del total';
+  document.getElementById('pct-var').textContent  = pctV.toFixed(1)+'% del total';
+
+  const cmpF=document.getElementById('cmpFijo'), cmpV=document.getElementById('cmpVar');
+  cmpF.style.width = (pctF<5?5:pctF)+'%';
+  cmpV.style.width = (pctV<5?5:pctV)+'%';
+  cmpF.textContent = pctF>=8 ? pctF.toFixed(0)+'% F' : '';
+  cmpV.textContent = pctV>=8 ? pctV.toFixed(0)+'% V' : '';
+
+  // Monthly chart filtered to range
+  const mtData = MONTHLY_TIPO.filter(m=>{
+    const md = new Date(m.MesKey+'-15');
+    return md>=range.start && md<=range.end;
+  });
+  destroyChart('acumulado');
+  // Cap variable for scale
+  const cap=15000;
+  charts.acumulado = new Chart(document.getElementById('cAcumulado'),{
+    type:'bar',
+    data:{labels:mtData.map(m=>m.Mes),
+      datasets:[
+        {label:'Fijos',data:mtData.map(m=>Math.round(Math.min(m.Fijo,cap))),backgroundColor:'#8b5cf6',borderRadius:3,stack:'g'},
+        {label:'Variables',data:mtData.map(m=>Math.round(Math.min(m.Variable,cap))),backgroundColor:'#f97316',borderRadius:3,stack:'g'}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)} €`}}},
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{color:'#64748b',font:{size:10},autoSkip:false,maxRotation:0}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}
+      }
+    }
+  });
+
+  // Cat bars
+  const renderBars = (containerId, catObj, color)=>{
+    const arr = Object.entries(catObj).sort((a,b)=>b[1]-a[1]);
+    if(!arr.length){
+      document.getElementById(containerId).innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:12px">Sin datos en este periodo</div>';
+      return;
+    }
+    const max = arr[0][1];
+    document.getElementById(containerId).innerHTML = arr.map(([cat,amt])=>`
+      <div style="padding:7px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between">
+          <span style="font-size:13px">${CAT_ICONS[cat]||'📋'} ${cat}</span>
+          <span style="font-size:13px;font-weight:700;color:${color}">${fmt(amt)} €</span>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${(amt/max*100).toFixed(1)}%;background:${color}"></div></div>
+      </div>`).join('');
+  };
+  renderBars('bars-fijo', fijoCat, '#8b5cf6');
+  renderBars('bars-var', varCat, '#f97316');
+}
+
+// ═══ FORECAST ════════════════════════════════════════════
+function buildForecast(){
+  const allCatG = Object.keys(CAT_AVG);
+  let forecast = {};
+  allCatG.forEach(cat=>{
+    if(['Compra vivienda','Tasación','Imp. circulación','Transferencias','Bizum'].includes(cat)) return;
+    const fixed = FIXED_CATS[cat];
+    const avg = CAT_AVG[cat]||0;
+    if(fixed && avg) forecast[cat]={amt:Math.round((avg*0.6+fixed*0.4)*100)/100, isFixed:CAT_TIPO[cat]==='Fijo'};
+    else if(avg)     forecast[cat]={amt:Math.round(avg*100)/100, isFixed:CAT_TIPO[cat]==='Fijo'};
+  });
+
+  const totalFc = Object.values(forecast).reduce((s,v)=>s+v.amt,0);
+  const nomina = 2030.86;
+  const saving = nomina-totalFc;
+  const savingPct = nomina>0?(saving/nomina*100).toFixed(1):0;
+
+  document.getElementById('fc-summary').innerHTML=`
+    <div class="fc-card"><div class="fc-lbl">Ingresos</div><div class="fc-val b">${fmtK(nomina)} €</div></div>
+    <div class="fc-card"><div class="fc-lbl">Gastos</div><div class="fc-val r">${fmtK(totalFc)} €</div></div>
+    <div class="fc-card"><div class="fc-lbl">Ahorro</div><div class="fc-val ${saving>=0?'g':'r'}">${fmtK(saving)} €</div></div>
+  `;
+  document.getElementById('fc-saving').textContent = (saving>=0?'+':'')+fmt(saving)+' €';
+  document.getElementById('fc-saving').style.color = saving>=0?'var(--green)':'var(--red)';
+  document.getElementById('fc-saving-sub').textContent = saving>=0?`${savingPct}% de tus ingresos`:'Gastos superan ingresos';
+
+  const fixedItems = Object.entries(forecast).filter(([,v])=>v.isFixed).sort((a,b)=>b[1].amt-a[1].amt);
+  document.getElementById('fc-fixed-list').innerHTML = fixedItems.map(([c,v])=>`
+    <div class="fc-row"><span class="fc-name">${CAT_ICONS[c]||'📋'} ${c} <span class="fc-fixed">FIJO</span></span><span class="fc-amt">${fmt(v.amt)} €</span></div>`).join('');
+  const varItems = Object.entries(forecast).filter(([,v])=>!v.isFixed).sort((a,b)=>b[1].amt-a[1].amt);
+  document.getElementById('fc-var-list').innerHTML = varItems.map(([c,v])=>`
+    <div class="fc-row"><span class="fc-name">${CAT_ICONS[c]||'📋'} ${c}</span><span class="fc-amt">${fmt(v.amt)} €</span></div>`).join('');
+
+  destroyChart('forecast');
+  const fcLabels=Object.keys(forecast), fcData=fcLabels.map(k=>Math.round(forecast[k].amt));
+  charts.forecast = new Chart(document.getElementById('cForecast'),{
+    type:'doughnut',
+    data:{labels:fcLabels,datasets:[{data:fcData,backgroundColor:fcLabels.map(k=>GASTO_COLORS[k]||'#64748b'),borderWidth:2,borderColor:'#1e293b'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €`}}}}
+  });
+
+  destroyChart('saving');
+  const netData = MONTHLY.map(m=>{
+    const net=m.Ingresos-m.Gastos;
+    return (Math.abs(m.Ingresos)>50000||Math.abs(m.Gastos)>50000)?null:Math.round(net);
+  });
+  const barColors = netData.map(v=>v===null?'#475569':v>=0?'rgba(16,185,129,0.75)':'rgba(244,63,94,0.75)');
+  charts.saving = new Chart(document.getElementById('cSaving'),{
+    type:'bar',
+    data:{labels:MONTHLY.map(m=>m.Mes),datasets:[{data:netData.map(v=>v===null?0:v),backgroundColor:barColors,borderRadius:3}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw===0&&netData[c.dataIndex]===null?' Op. especial':` ${fmt(c.raw)} €`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10},autoSkip:false,maxRotation:0}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k€':v+'€'}}
+      }
+    }
+  });
+}
+
+// ═══ MOVIMIENTOS ═════════════════════════════════════════
+function buildMonthStrip(){
+  const names=['Todos','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const vals=['','01','02','03','04','05','06','07','08','09','10','11','12'];
+  document.getElementById('mstrip').innerHTML=names.map((n,i)=>`<button class="m-btn${vals[i]===mesActivo?' active':''}" onclick="setMes('${vals[i]}',this)">${n}</button>`).join('');
+  const cats=[...new Set(getAllRows().map(r=>r.Categoria))].sort();
+  const sel=document.getElementById('fCat');
+  sel.innerHTML='<option value="">Todas categorías</option>';
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+}
+
+function setMes(v,btn){
+  mesActivo=v; page=1;
+  document.querySelectorAll('.m-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTx();
+}
+
+function getFiltered(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const cat=document.getElementById('fCat').value;
+  const tipo=document.getElementById('fTipo').value;
+  const fv=document.getElementById('fFV').value;
+  return getAllRows().filter(r=>{
+    if(mesActivo&&r.Fecha_Op.slice(3,5)!==mesActivo) return false;
+    if(q&&!r.Desc.toLowerCase().includes(q)&&!r.Categoria.toLowerCase().includes(q)) return false;
+    if(cat&&r.Categoria!==cat) return false;
+    if(tipo==='i'&&r.Ingreso<=0) return false;
+    if(tipo==='g'&&r.Gasto<=0) return false;
+    if(fv&&r.Tipo!==fv) return false;
+    return true;
+  });
+}
+
+function renderTx(){
+  const filtered=getFiltered();
+  const total=filtered.length, totalPages=Math.max(1,Math.ceil(total/perPage));
+  if(page>totalPages) page=1;
+  const slice=filtered.slice((page-1)*perPage, page*perPage);
+  document.getElementById('mov-count').textContent=total+' transacciones';
+  document.getElementById('txList').innerHTML=slice.map(r=>{
+    const isI=r.Ingreso>0;
+    const amt=isI?r.Ingreso:r.Gasto;
+    const color=isI?'var(--green)':'var(--red)';
+    const sign=isI?'+':'-';
+    const icon=CAT_ICONS[r.Categoria]||'📋';
+    const bg=(GASTO_COLORS[r.Categoria]||INGRESO_COLORS[r.Categoria]||'#64748b')+'22';
+    const saldoStr=r.Saldo!=null?`<div class="saldo">${fmt(r.Saldo)} €</div>`:'';
+    const horaStr=r._hora?` · ${r._hora}`:'';
+    const tipoBadge=r.Tipo?`<span class="tx-tipo ${r.Tipo==='Fijo'?'tt-fijo':'tt-var'}">${r.Tipo==='Fijo'?'F':'V'}</span>`:'';
+    const delBtn=r._manual?`<button class="del-btn" onclick="deleteManual('${r._id}',event)">✕</button>`:'';
+    return `<div class="tx${r._manual?' manual':''}">
+      <div class="tx-icon" style="background:${bg}">${icon}</div>
+      <div class="tx-body">
+        <div class="tx-desc">${r.Desc}</div>
+        <div class="tx-meta"><span>${r.Fecha_Op}${horaStr}</span><span>${r.Categoria}</span>${tipoBadge}</div>
+      </div>
+      <div class="tx-amt"><div class="amt" style="color:${color}">${sign}${fmt(amt)} €</div>${saldoStr}</div>
+      ${delBtn}
+    </div>`;
+  }).join('');
+  document.getElementById('pInfo').textContent=page+'/'+totalPages;
+  document.getElementById('pPrev').disabled=page<=1;
+  document.getElementById('pNext').disabled=page>=totalPages;
+}
+
+// ═══ MODAL ═══════════════════════════════════════════════
+function openModal(){
+  const now=new Date();
+  document.getElementById('mFecha').value=now.toISOString().slice(0,10);
+  document.getElementById('mHora').value=now.toTimeString().slice(0,5);
+  document.getElementById('mImporte').value='';
+  document.getElementById('mDesc').value='';
+  document.getElementById('mNota').value='';
+  setType('g');
+  populateCatSelect('g');
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mImporte').focus(),300);
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('overlay'))
+    document.getElementById('overlay').classList.remove('open');
+}
+
+function setType(t){
+  modalType=t;
+  document.getElementById('btnGasto').className='type-btn'+(t==='g'?' active-g':'');
+  document.getElementById('btnIngreso').className='type-btn'+(t==='i'?' active-i':'');
+  populateCatSelect(t);
+}
+
+function populateCatSelect(t){
+  const cats=t==='g'?GASTO_CATS:INGRESO_CATS;
+  const sel=document.getElementById('mCat');
+  sel.innerHTML=cats.map(c=>`<option value="${c}">${CAT_ICONS[c]||'📋'} ${c}</option>`).join('');
+  // auto-set tipo on category change
+  sel.onchange = ()=>{
+    const t = CAT_TIPO[sel.value];
+    if(t) document.getElementById('mTipoFV').value = t;
+  };
+  if(sel.value) sel.onchange();
+}
+
+function saveMovimiento(){
+  const importe=parseFloat(document.getElementById('mImporte').value);
+  const desc=document.getElementById('mDesc').value.trim();
+  const cat=document.getElementById('mCat').value;
+  const tipoFV=document.getElementById('mTipoFV').value;
+  const fecha=document.getElementById('mFecha').value;
+  const hora=document.getElementById('mHora').value;
+  const nota=document.getElementById('mNota').value.trim();
+  if(!importe||importe<=0){ alert('Importe inválido'); return; }
+  if(!fecha){ alert('Selecciona fecha'); return; }
+  MANUAL.push({id:Date.now().toString(),tipo:modalType,importe:importe.toFixed(2),
+    desc:desc||cat,cat,tipoFV,fecha,hora,nota});
+  saveManual(MANUAL);
+  document.getElementById('overlay').classList.remove('open');
+  buildResumen();
+  buildMonthStrip();
+  renderTx();
+  if(typeof renderPlan === 'function' && document.getElementById('pg-plan').classList.contains('active')) renderPlan();
+}
+
+function deleteManual(id,e){
+  e.stopPropagation();
+  if(!confirm('¿Eliminar este movimiento?')) return;
+  MANUAL=MANUAL.filter(m=>m.id!==id);
+  saveManual(MANUAL);
+  buildResumen();
+  renderTx();
+}
+
+function exportCSV(){
+  if(!MANUAL.length){ alert('No hay movimientos manuales'); return; }
+  const header='ID,Tipo,FijoVariable,Importe,Descripcion,Categoria,Fecha,Hora,Nota';
+  const lines=MANUAL.map(r=>[r.id,r.tipo==='i'?'Ingreso':'Gasto',r.tipoFV||'Variable',r.importe,
+    '"'+(r.desc||'').replace(/"/g,'""')+'"','"'+r.cat+'"',r.fecha,r.hora||'',
+    '"'+(r.nota||'').replace(/"/g,'""')+'"'].join(','));
+  const csv=[header,...lines].join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='movimientos_manuales.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+document.getElementById('search').addEventListener('input',()=>{page=1;renderTx();});
+document.getElementById('fCat').addEventListener('change',()=>{page=1;renderTx();});
+document.getElementById('fTipo').addEventListener('change',()=>{page=1;renderTx();});
+document.getElementById('fFV').addEventListener('change',()=>{page=1;renderTx();});
+document.getElementById('pPrev').addEventListener('click',()=>{page--;renderTx();});
+document.getElementById('pNext').addEventListener('click',()=>{page++;renderTx();});
+
+
+// ═══ PLAN DE AHORRO ══════════════════════════════════════
+const MERCHANTS = [{"name": "Otros", "total": 4518.54, "avg_mes": 376.54}, {"name": "Supermercado", "total": 1414.65, "avg_mes": 117.89}, {"name": "Compras online/Retail", "total": 1387.18, "avg_mes": 115.6}, {"name": "Restaurantes/Bares", "total": 867.72, "avg_mes": 72.31}, {"name": "Comida a domicilio", "total": 514.93, "avg_mes": 42.91}, {"name": "Hogar/DIY", "total": 465.73, "avg_mes": 38.81}, {"name": "Combustible", "total": 424.0, "avg_mes": 35.33}, {"name": "Panadería", "total": 15.57, "avg_mes": 1.3}];
+const PLANS = {
+  soft: {
+    name: 'Suave', emoji: '🟢', monthly: 150, color: 'green',
+    desc: 'Adaptado a tu cuenta común',
+    actions: [
+      {icon:'🏠', name:'Cuenta común 430 €', desc:'Transferencia a cuenta conjunta para luz, agua y gastos de hogar', amt:0, track:'comun', isCommon:true},
+      {icon:'🛍', name:'Compras online impulsivas', desc:'Regla de las 48h antes de comprar', amt:40, track:'online'},
+      {icon:'🛵', name:'Comida a domicilio -50%', desc:'Reduce Glovo/Uber Eats a la mitad', amt:25, track:'delivery'},
+      {icon:'📺', name:'Auditar suscripciones', desc:'Revisa DAZN, Apple, Amazon Prime', amt:15, track:'subscriptions'},
+      {icon:'💨', name:'Reducir vaper', desc:'Tu cuenta común cubre algo, controla el resto', amt:20, track:'vaper'},
+      {icon:'📱', name:'Bizum no esencial', desc:'Pequeñas transferencias evitables', amt:50, track:'bizum'}
+    ]
+  },
+  mod: {
+    name: 'Moderado', emoji: '🟡', monthly: 280, color: 'amber',
+    desc: 'Mayor disciplina personal',
+    actions: [
+      {icon:'🏠', name:'Cuenta común 430 €', desc:'Transferencia a cuenta conjunta para luz, agua y gastos de hogar', amt:0, track:'comun', isCommon:true},
+      {icon:'🛵', name:'Eliminar comida a domicilio', desc:'Cero Glovo/Uber Eats', amt:45, track:'delivery'},
+      {icon:'🛍', name:'Compras online al 30%', desc:'Solo lo imprescindible', amt:80, track:'online'},
+      {icon:'🍽', name:'Restaurantes personales -50%', desc:'Los de pareja van por cuenta común', amt:30, track:'restaurants'},
+      {icon:'📺', name:'Auditar suscripciones', desc:'Cancela las menos usadas', amt:20, track:'subscriptions'},
+      {icon:'💨', name:'Reducir vaper significativamente', desc:'Objetivo: -70% del gasto actual', amt:35, track:'vaper'},
+      {icon:'📱', name:'Bizum no esencial', desc:'Transferencias evitables', amt:45, track:'bizum'},
+      {icon:'🔨', name:'Hogar/DIY al mínimo', desc:'Lo necesario se paga desde común', amt:25, track:'home'}
+    ]
+  },
+  agr: {
+    name: 'Agresivo', emoji: '🔴', monthly: 470, color: 'red',
+    desc: 'Máximo ahorro posible',
+    actions: [
+      {icon:'🏠', name:'Cuenta común 430 €', desc:'Transferencia a cuenta conjunta para luz, agua y gastos de hogar', amt:0, track:'comun', isCommon:true},
+      {icon:'🛵', name:'Eliminar comida a domicilio', desc:'Cero Glovo/Uber Eats', amt:45, track:'delivery'},
+      {icon:'🛍', name:'Compras online mínimas', desc:'Solo necesidades reales', amt:110, track:'online'},
+      {icon:'🍽', name:'Restaurantes solo ocasiones', desc:'Una vez al mes máximo', amt:55, track:'restaurants'},
+      {icon:'📺', name:'Suscripciones al mínimo', desc:'Quédate con 1 imprescindible', amt:25, track:'subscriptions'},
+      {icon:'💨', name:'Eliminar vaper', desc:'Doble beneficio: salud + dinero', amt:50, track:'vaper'},
+      {icon:'🚬', name:'Eliminar tabaco', desc:'Doble beneficio: salud + dinero', amt:25, track:'tobacco'},
+      {icon:'📱', name:'Bizum no esencial', desc:'Transferencias evitables', amt:60, track:'bizum'},
+      {icon:'🔨', name:'Hogar/DIY al mínimo', desc:'Aplaza IKEA, ferretería', amt:40, track:'home'},
+      {icon:'⛽', name:'Combustible optimizado', desc:'Planifica viajes, comparte coche', amt:30, track:'fuel'}
+    ]
+  }
+};
+
+// Current situation context
+const SITUATION = {
+  nomina: 2184.73,
+  inversion: 400,  // already being saved monthly
+  cuentaComun: 430,  // planned transfer to common account
+  transferPersonal: 350,  // existing personal transfer (not investment)
+  gastosFijos: 1300  // approx monthly fixed costs
+};
+
+let activePlan = 'soft';
+
+function setPlan(key) {
+  activePlan = key;
+  document.querySelectorAll('.plan-btn').forEach(b => {
+    b.classList.remove('active-soft','active-mod','active-agr');
+  });
+  const map = {soft:'active-soft', mod:'active-mod', agr:'active-agr'};
+  document.getElementById('pln'+key.charAt(0).toUpperCase()+key.slice(1)).classList.add(map[key]);
+  renderPlan();
+}
+
+function renderPlan() {
+  const p = PLANS[activePlan];
+  const hero = document.getElementById('planHero');
+  hero.className = 'plan-hero ' + activePlan;
+  const totalSaving = p.monthly + SITUATION.inversion;
+  document.getElementById('phLbl').textContent = 'Ahorro extra del plan ' + p.name;
+  document.getElementById('phVal').textContent = p.monthly + ' €/mes';
+  document.getElementById('phSub').textContent = `+ ${SITUATION.inversion} € que ya inviertes = ${totalSaving} €/mes total`;
+  document.getElementById('proj6').textContent = fmt(totalSaving * 6) + ' €';
+  document.getElementById('proj12').textContent = fmt(totalSaving * 12) + ' €';
+  // Update available save display
+  const availableEl = document.getElementById('availableSave');
+  if(availableEl){
+    const available = SITUATION.nomina - SITUATION.gastosFijos - SITUATION.cuentaComun - SITUATION.inversion - SITUATION.transferPersonal;
+    availableEl.textContent = fmt(Math.max(0, available)) + ' €';
+    availableEl.style.color = available >= 400 ? 'var(--green)' : (available >= 200 ? 'var(--amber)' : 'var(--red)');
+  }
+
+  document.getElementById('actionList').innerHTML = p.actions.map(a => {
+    let trackHtml = '';
+    if(a.track && ACTION_TRACKING[a.track]){
+      const cfg = ACTION_TRACKING[a.track];
+      const limit = cfg.limit;
+      const spent = getSpentThisMonth(a.track);
+      const status = getTrackStatus(spent, limit);
+      const pct = Math.min(status.pct, 100);
+      const remaining = limit - spent;
+      trackHtml = `
+        <div class="action-track">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--text3)">Este mes <span class="track-badge tb-${status.color}">${status.label.toUpperCase()}</span></span>
+            <span class="track-spent ${status.color}" style="font-size:12px;font-weight:700">${fmt(spent)} / ${fmt(limit)} €</span>
+          </div>
+          <div class="track-bar-wrap"><div class="track-bar ${status.color}" style="width:${pct.toFixed(1)}%"></div></div>
+          <div class="track-stats">
+            <span class="track-limit">${status.pct.toFixed(0)}% del límite</span>
+            <span class="${remaining >= 0 ? 'track-spent green' : 'track-spent red'}">${remaining >= 0 ? 'Quedan ' + fmt(remaining) + ' €' : 'Excedido ' + fmt(-remaining) + ' €'}</span>
+          </div>
+          <div class="limit-note">Límite = media truncada 12 meses (descartando outliers ±30%)</div>
+        </div>`;
+    }
+    // Common account items are shown as compromises, not savings
+    const amtHtml = a.isCommon
+      ? `<div class="action-amt" style="color:var(--blue)">${a.amt > 0 ? '-' + a.amt : '430'} €<small>cuenta común</small></div>`
+      : `<div class="action-amt">-${a.amt} €<small>ahorro/mes</small></div>`;
+    const borderStyle = a.isCommon ? 'border-left:3px solid var(--blue);padding-left:11px' : '';
+    return `
+    <div class="action-row" style="flex-direction:column;align-items:stretch;${borderStyle}">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div class="action-icon">${a.icon}</div>
+        <div class="action-body">
+          <div class="action-name">${a.name}</div>
+          <div class="action-desc">${a.desc}</div>
+        </div>
+        ${amtHtml}
+      </div>
+      ${trackHtml}
+    </div>`;
+  }).join('');
+
+  // Diagnostic bars
+  const diagItems = MERCHANTS.filter(m => m.avg_mes >= 1).sort((a,b)=>b.avg_mes-a.avg_mes);
+  const max = diagItems[0].avg_mes;
+  document.getElementById('diagList').innerHTML = diagItems.map(m => `
+    <div class="diag-row">
+      <div class="diag-name">${m.name}</div>
+      <div class="diag-bar-wrap"><div class="diag-bar" style="width:${(m.avg_mes/max*100).toFixed(0)}%"></div></div>
+      <div class="diag-amt">${fmt(m.avg_mes)} €</div>
+    </div>`).join('');
+
+  // Comparison chart
+  destroyChart('plancmp');
+  charts.plancmp = new Chart(document.getElementById('cPlanCmp'), {
+    type: 'bar',
+    data: {
+      labels: ['Solo inversión','+ Suave','+ Moderado','+ Agresivo'],
+      datasets: [{
+        label: 'Ahorro anual total',
+        data: [
+          SITUATION.inversion*12,
+          (SITUATION.inversion + PLANS.soft.monthly)*12,
+          (SITUATION.inversion + PLANS.mod.monthly)*12,
+          (SITUATION.inversion + PLANS.agr.monthly)*12
+        ],
+        backgroundColor: ['#475569','#10b981','#f59e0b','#f43f5e'],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {legend:{display:false}, tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €/año`}}},
+      scales: {
+        x: {grid:{display:false}, ticks:{color:'#64748b',font:{size:11}}},
+        y: {grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(1)+'k€':v+'€'}}
+      }
+    }
+  });
+}
+
+
+
+// ═══ TOAST ═══════════════════════════════════════════════
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.className = 'toast show ' + type;
+  t.textContent = msg;
+  setTimeout(()=>{ t.classList.remove('show'); }, 3500);
+}
+
+function goPageById(id){
+  document.querySelector(`.nav-btn[onclick*="'${id}'"]`)?.click();
+}
+
+
+// ═══ TRIMMED MEANS + TRACKING ═══════════════════════════
+// For each trackable action: avg = trimmed mean of last year monthly spend
+// Limit per month = avg value (goal is to stay below this = achieving the saving)
+const TRIM_MEANS = {"delivery": {"avg": 53.51, "months_used": 3, "raw": [24.94, 40.99, 0.0, 14.95, 16.58, 81.83, 60.46, 86.17, 98.3, 0.0, 59.09, 31.62]}, "online": {"avg": 132.18, "months_used": 1, "raw": [58.83, 27.99, 44.98, 132.18, 0.0, 0.0, 86.79, 206.89000000000001, 214.6, 292.11, 281.71000000000004, 41.1]}, "restaurants": {"avg": 74.37, "months_used": 4, "raw": [96.2, 77.68, 62.97, 49.05, 17.55, 48.1, 45.45, 140.0, 60.620000000000005, 0.0, 262.6, 7.5]}, "supermarket": {"avg": 117.33, "months_used": 1, "raw": [13.94, 18.49, 40.44, 29.16, 89.83, 237.07000000000002, 117.33000000000001, 17.03, 235.71, 178.29000000000002, 437.35999999999996, 0.0]}, "subscriptions": {"avg": 21.12, "months_used": 7, "raw": [45.93, 20.979999999999997, 20.979999999999997, 20.979999999999997, 21.97, 20.979999999999997, 20.979999999999997, 20.979999999999997, 39.64, 32.98, 32.98, 0.99]}, "bizum": {"avg": 103.7, "months_used": 3, "raw": [25.0, 19.0, 35.8, 158.92000000000002, 195.5, 406.5, 80.0, 100.0, 131.11, 26.59, 20.0]}, "tobacco": {"avg": 70.86, "months_used": 1, "raw": [6.2, 34.0, 70.86, 109.09]}, "home": {"avg": 85.0, "months_used": 1, "raw": [0.0, 0.0, 19.5, 0.0, 0.0, 0.0, 0.0, 1.15, 180.89999999999998, 85.0, 141.98, 37.2]}};
+
+// Map plan action key -> categories/merchant keywords to match movements
+const ACTION_TRACKING = {
+  delivery: {
+    label: 'Comida a domicilio',
+    limit: TRIM_MEANS.delivery.avg,
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      return /GLOVO|UBER EATS|UBER \* EATS|JUST EAT|TELEPIZZA|DOMINO/.test(d);
+    }
+  },
+  online: {
+    label: 'Compras online',
+    limit: TRIM_MEANS.online.avg,
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      // Excluir vaper (tiene su propia categoría)
+      if(/VAPER/.test(d)) return false;
+      return /AMAZON|MEDIA MARKT|MEDIAMARKT|PCCOMPON|APPLE|EL CORTE|ZARA|PRIMARK|CREATE|TODOTARAS/.test(d);
+    }
+  },
+  restaurants: {
+    label: 'Restaurantes/Bares',
+    limit: TRIM_MEANS.restaurants.avg,
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      return /BAR |RESTAUR|PIZZA|SUSHI|BURGER|MCDO|KFC|RINCON|PASSARO|TABERN|MELOC|CUCHA|GOYA|JAREA|KANGURO|TRUCHE/.test(d);
+    }
+  },
+  supermarket: {
+    label: 'Supermercado',
+    limit: TRIM_MEANS.supermarket.avg,
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      return /MERCADONA|LIDL|CARREF|ALCAMPO|CONSUM|EROSKI|HIPER|SUPERMER|PROXIMA|DIA /.test(d);
+    }
+  },
+  subscriptions: {
+    label: 'Plataformas digitales',
+    limit: TRIM_MEANS.subscriptions.avg,
+    match: (r) => r.Categoria === 'Plataformas digitales' && r.Ingreso === 0
+  },
+  bizum: {
+    label: 'Bizum no esencial',
+    limit: TRIM_MEANS.bizum.avg,
+    match: (r) => r.Categoria === 'Bizum' && r.Gasto > 0 && r.Gasto < 500
+  },
+  tobacco: {
+    label: 'Estanco/Tabaco',
+    limit: TRIM_MEANS.tobacco.avg,
+    match: (r) => r.Categoria === 'Estanco' && r.Gasto > 0
+  },
+  home: {
+    label: 'Hogar/DIY',
+    limit: TRIM_MEANS.home.avg,
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      return /IKEA|LEROY|BAUHAUS|BRICOMA|AGROJARDIN|FERRETER/.test(d);
+    }
+  },
+  vaper: {
+    label: 'Vapers/Tienda vaper',
+    limit: 50,  // estimación inicial
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      return /VAPER/.test(d);
+    }
+  },
+  fuel: {
+    label: 'Combustible',
+    limit: 90,  // aprox gasto medio combustible
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      return /EE SS|GASOL|REPSOL|BP |CEPSA|GALP|SHELL|ALCAMPO BAR|BONAREA CAR/.test(d);
+    }
+  },
+  comun: {
+    label: 'Cuenta común',
+    limit: 430,
+    match: (r) => {
+      if(r.Ingreso > 0) return false;
+      const d = (r.Desc||'').toUpperCase();
+      // Revolut**6649* es la cuenta común según la fórmula
+      return /REVOLUT.*6649|CUENTA COMUN|COMUN/.test(d) || r.Categoria === 'Cuenta común';
+    }
+  }
+};
+
+// Get current month spent for a given action
+function getSpentThisMonth(actionKey){
+  const cfg = ACTION_TRACKING[actionKey];
+  if(!cfg) return 0;
+  const now = new Date();
+  const mm = ('0'+(now.getMonth()+1)).slice(-2);
+  const yyyy = now.getFullYear().toString();
+  let total = 0;
+  for(const r of getAllRows()){
+    if(r.Fecha_Op.slice(3,5) !== mm) continue;
+    if(r.Fecha_Op.slice(6) !== yyyy) continue;
+    if(cfg.match(r)) total += r.Gasto;
+  }
+  return total;
+}
+
+// Status: verde (<90%), amarillo (90-100%), rojo (>100%)
+function getTrackStatus(spent, limit){
+  if(limit <= 0) return {color: 'gray', pct: 0, label: 'Sin datos'};
+  const pct = (spent / limit) * 100;
+  if(pct > 100) return {color: 'red', pct, label: 'Superado'};
+  if(pct >= 90) return {color: 'amber', pct, label: 'Cerca del límite'};
+  return {color: 'green', pct, label: 'En objetivo'};
+}
+
+// ═══ EXCEL IMPORT ════════════════════════════════════════
+const GASTO_MAP = {
+  36:{cat:'Gastos varios',tipo:'Variable'},29:{cat:'Comunidad',tipo:'Fijo'},
+  6:{cat:'Móvil + Fibra',tipo:'Fijo'},51:{cat:'Seguros',tipo:'Fijo'},
+  73:{cat:'Transferencias',tipo:'Fijo'},18:{cat:'Hipoteca',tipo:'Fijo'},
+  35:{cat:'Seguro coche',tipo:'Fijo'},2:{cat:'Bizum',tipo:'Variable'},
+  8:{cat:'Tasación',tipo:'Variable'},16:{cat:'Imp. circulación',tipo:'Fijo'},
+  38:{cat:'Máster',tipo:'Fijo'},67:{cat:'Gastos varios',tipo:'Variable'},
+  40:{cat:'Gasto tarjeta',tipo:'Variable'},440:{cat:'Aparcamiento',tipo:'Fijo'},
+  441:{cat:'Plataformas digitales',tipo:'Fijo'},442:{cat:'Cuenta común',tipo:'Fijo'},
+  443:{cat:'Autopistas',tipo:'Variable'},444:{cat:'Estanco',tipo:'Variable'},
+  445:{cat:'Gasolina',tipo:'Fijo'},220:{cat:'Compra vivienda',tipo:'Variable'}
+};
+const INGRESO_MAP = {
+  41:{cat:'Nomina',tipo:'Fijo'},401:{cat:'Devoluciones',tipo:'Variable'},
+  48:{cat:'Transferencias',tipo:'Fijo'},200:{cat:'Bizum',tipo:'Variable'},
+  670:{cat:'Donación',tipo:'Variable'},180:{cat:'Prestamo',tipo:'Variable'}
+};
+
+// Excel serial date -> dd/mm/yyyy
+function excelDateToStr(serial){
+  if(typeof serial === 'string'){
+    // Maybe already dd/mm/yyyy
+    if(/^\d{2}\/\d{2}\/\d{4}$/.test(serial)) return serial;
+    // Try parsing
+    const d = new Date(serial);
+    if(!isNaN(d)) return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+    return serial;
+  }
+  // Excel serial to date (Excel epoch: 1899-12-30)
+  const epoch = new Date(Date.UTC(1899,11,30));
+  const d = new Date(epoch.getTime() + serial*86400000);
+  return ('0'+d.getUTCDate()).slice(-2)+'/'+('0'+(d.getUTCMonth()+1)).slice(-2)+'/'+d.getUTCFullYear();
+}
+
+function cleanText(s){
+  if(s == null) return '';
+  return String(s).replace(/\s+/g,' ').trim();
+}
+
+// Apply Ibercaja formula to derive correct Concepto propio from raw data
+function applyConceptoFormula(ccComun, ccPropio, cc1, hasGasto){
+  const ccTrim = cleanText(cc1);
+  if(ccTrim === 'APP EST.REGULADO') return 440;
+  if(['WWW.DAZN.COM','APPLE.COM/BILL','Amazon Prime'].includes(ccTrim)) return 441;
+  if(ccTrim === 'Revolut**6649*') return 442;
+  if(ccTrim === 'BIP DRIVE SA') return 443;
+  if(/ESTANCO/i.test(ccTrim)) return 444;
+  const cc = parseInt(ccComun);
+  if(cc === 40 && hasGasto) return 401;
+  if(cc === 2  && hasGasto) return 200;
+  if(cc === 67 && hasGasto) return 670;
+  if(cc === 70) return 670;
+  if(ccTrim === 'COMPRA CON TARJETA') return 445;
+  return cc; // fallback to common concept code
+}
+
+function handleExcelImport(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+
+      // Try Tabla actualizada first, otherwise fall back to Movimientos (raw bank data)
+      let sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('tabla actualizada'))
+                   || wb.SheetNames.find(n => n.toLowerCase().includes('tabla'));
+      let isRaw = false;
+      if(!sheetName){
+        sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'movimientos')
+                 || wb.SheetNames.find(n => n.toLowerCase().includes('movim'));
+        isRaw = !!sheetName;
+      }
+      if(!sheetName){ toast('No se encontró la hoja de datos','error'); return; }
+
+      const sheet = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
+      if(rows.length < 2){ toast('La hoja está vacía','error'); return; }
+
+      // Find header row (look for "Fecha")
+      let headerIdx = 0;
+      for(let i = 0; i < Math.min(8, rows.length); i++){
+        if(rows[i].some(c => typeof c === 'string' && c.includes('Fecha'))){ headerIdx = i; break; }
+      }
+      const headers = rows[headerIdx].map(h => String(h||'').trim());
+      const dataRows = rows.slice(headerIdx+1);
+
+      const findCol = (...names) => {
+        for(const n of names){
+          const i = headers.findIndex(h => h.toLowerCase().includes(n.toLowerCase()));
+          if(i >= 0) return i;
+        }
+        return -1;
+      };
+      const cFecha = findCol('Fecha valor','F. Valor','F.Valor','Fecha');
+      const cIng   = findCol('Ingreso');
+      const cGas   = findCol('Gasto');
+      const cSaldo = findCol('Saldo (+)','Saldo +','Saldo');
+      const cCComun  = findCol('Concepto común','Concepto comun');
+      const cCPropio = findCol('Concepto propio');
+      const cCC1     = findCol('Concepto complementario 1','complementario 1');
+
+      if(cFecha < 0 || cIng < 0 || cGas < 0){
+        toast('Columnas requeridas no encontradas','error');
+        return;
+      }
+
+      const newRows = [];
+      let imported = 0;
+      for(const r of dataRows){
+        const fechaRaw = r[cFecha];
+        if(fechaRaw == null || fechaRaw === '') continue;
+        const fecha = excelDateToStr(fechaRaw);
+        if(!/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) continue;
+
+        const ing = parseFloat(r[cIng]) || 0;
+        const gas = parseFloat(r[cGas]) || 0;
+        if(ing === 0 && gas === 0) continue;
+
+        const saldo = parseFloat(r[cSaldo]);
+        const cc1 = r[cCC1] || '';
+        const desc = cleanText(cc1).slice(0,50);
+
+        // Determine concepto propio: apply formula if raw, else use existing
+        let cp;
+        if(isRaw){
+          cp = applyConceptoFormula(r[cCComun], r[cCPropio], cc1, gas > 0);
+        } else {
+          cp = parseInt(r[cCPropio]);
+        }
+
+        let cat='Sin clasificar', tipo='Variable';
+        if(!isNaN(cp)){
+          const map = ing > 0 ? INGRESO_MAP : GASTO_MAP;
+          if(map[cp]){ cat = map[cp].cat; tipo = map[cp].tipo; }
+          else { cat = ing > 0 ? 'Otros ingresos' : 'Otros gastos'; }
+        }
+
+        newRows.push({
+          Fecha_Op: fecha,
+          Ingreso: ing,
+          Gasto: gas,
+          Saldo: isNaN(saldo) ? null : saldo,
+          Desc: desc || cat,
+          Categoria: cat,
+          Tipo: tipo
+        });
+        imported++;
+      }
+
+      if(imported === 0){
+        toast('No se importó ningún movimiento','error');
+        return;
+      }
+
+      const sheetInfo = isRaw ? 'Movimientos (brutos, reclasificados)' : 'Tabla actualizada';
+
+      // Sort by date desc
+      newRows.sort((a,b)=>{
+        const da = a.Fecha_Op.slice(6)+a.Fecha_Op.slice(3,5)+a.Fecha_Op.slice(0,2);
+        const db = b.Fecha_Op.slice(6)+b.Fecha_Op.slice(3,5)+b.Fecha_Op.slice(0,2);
+        return db.localeCompare(da);
+      });
+
+      // Save to localStorage and replace BANK_ROWS
+      localStorage.setItem('finanzas_bank_data', JSON.stringify(newRows));
+      localStorage.setItem('finanzas_bank_updated', new Date().toISOString());
+
+      BANK_ROWS.length = 0;
+      newRows.forEach(r => BANK_ROWS.push(r));
+
+      // Recompute everything
+      recomputeData();
+      updateLastUpdate();
+      toast(`✓ ${imported} movimientos importados desde ${sheetInfo}`, 'success');
+    } catch(err){
+      console.error(err);
+      toast('Error al leer el archivo: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+}
+
+function recomputeData(){
+  // Recompute MONTHLY, MONTHLY_TIPO, CAT_G, CAT_I, SALDO from BANK_ROWS
+  const months = {};
+  const monthsTipo = {};
+  const catG = {};
+  const catI = {};
+  const saldoMap = {};
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+  for(const r of BANK_ROWS){
+    const dd = r.Fecha_Op.slice(0,2);
+    const mm = r.Fecha_Op.slice(3,5);
+    const yyyy = r.Fecha_Op.slice(6);
+    const mk = `${yyyy}-${mm}`;
+    const monthLabel = meses[parseInt(mm)-1];
+
+    if(!months[mk]) months[mk] = {MesKey:mk, Mes:monthLabel, Ingresos:0, Gastos:0};
+    months[mk].Ingresos += r.Ingreso;
+    months[mk].Gastos += r.Gasto;
+
+    if(!monthsTipo[mk]) monthsTipo[mk] = {MesKey:mk, Mes:monthLabel, Fijo:0, Variable:0};
+    if(r.Gasto > 0){
+      if(r.Tipo === 'Fijo') monthsTipo[mk].Fijo += r.Gasto;
+      else monthsTipo[mk].Variable += r.Gasto;
+      catG[r.Categoria] = (catG[r.Categoria] || 0) + r.Gasto;
+    }
+    if(r.Ingreso > 0) catI[r.Categoria] = (catI[r.Categoria] || 0) + r.Ingreso;
+
+    if(r.Saldo != null){
+      const dKey = `${yyyy}-${mm}-${dd}`;
+      saldoMap[dKey] = r.Saldo; // last write wins (rows are sorted desc, so first occurrence overrides; but we want latest of each day — let's iterate again)
+    }
+  }
+
+  // Saldo: iterate ascending and keep last per day
+  const sortedRows = [...BANK_ROWS].sort((a,b)=>{
+    const da = a.Fecha_Op.slice(6)+a.Fecha_Op.slice(3,5)+a.Fecha_Op.slice(0,2);
+    const db = b.Fecha_Op.slice(6)+b.Fecha_Op.slice(3,5)+b.Fecha_Op.slice(0,2);
+    return da.localeCompare(db);
+  });
+  const sm = {};
+  for(const r of sortedRows){
+    if(r.Saldo != null){
+      const k = r.Fecha_Op.slice(6)+'-'+r.Fecha_Op.slice(3,5)+'-'+r.Fecha_Op.slice(0,2);
+      sm[k] = r.Saldo;
+    }
+  }
+  SALDO_DATA.length = 0;
+  Object.keys(sm).sort().forEach(k => SALDO_DATA.push({Fecha_Op:k, Saldo:sm[k]}));
+
+  MONTHLY.length = 0;
+  Object.keys(months).sort().forEach(k => MONTHLY.push(months[k]));
+  MONTHLY_TIPO.length = 0;
+  Object.keys(monthsTipo).sort().forEach(k => MONTHLY_TIPO.push(monthsTipo[k]));
+  CAT_G_DATA.length = 0;
+  Object.entries(catG).sort((a,b)=>b[1]-a[1]).forEach(([cat,gasto]) => CAT_G_DATA.push({Categoria:cat, Tipo:CAT_TIPO[cat]||'Variable', Gasto:gasto}));
+  CAT_I_DATA.length = 0;
+  Object.entries(catI).sort((a,b)=>b[1]-a[1]).forEach(([cat,ing]) => CAT_I_DATA.push({Categoria:cat, Tipo:CAT_TIPO[cat]||'Variable', Ingreso:ing}));
+
+  // Recompute totales tipo
+  TOTALES_TIPO.Fijo = Object.values(monthsTipo).reduce((s,m)=>s+m.Fijo,0);
+  TOTALES_TIPO.Variable = Object.values(monthsTipo).reduce((s,m)=>s+m.Variable,0);
+
+  // Update saldo actual
+  const lastSaldo = SALDO_DATA.length ? SALDO_DATA[SALDO_DATA.length-1].Saldo : 0;
+  window._saldoBase = lastSaldo;
+
+  // Rebuild visible content
+  buildResumen();
+  // Destroy charts to force rebuild
+  Object.keys(charts).forEach(destroyChart);
+  buildSaldoChart();
+  buildMensualChart();
+  buildMonthStrip();
+  renderTx();
+}
+
+function updateLastUpdate(){
+  const ts = localStorage.getItem('finanzas_bank_updated');
+  if(ts){
+    const d = new Date(ts);
+    const f = ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+
+              ' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+    document.getElementById('lastUpdate').textContent = 'Última actualización: ' + f;
+  }
+}
+
+// ═══ BACKUP/RESTORE ══════════════════════════════════════
+function exportBackup(){
+  const data = {
+    version: 1,
+    exported: new Date().toISOString(),
+    manual: MANUAL,
+    bank_present: !!localStorage.getItem('finanzas_bank_data')
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'mis-finanzas-backup.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Backup descargado');
+}
+
+function importBackup(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      const data = JSON.parse(ev.target.result);
+      if(!Array.isArray(data.manual)){ toast('Archivo inválido','error'); return; }
+      if(!confirm(`Reemplazar ${MANUAL.length} movimientos manuales con ${data.manual.length} del backup?`)) return;
+      MANUAL = data.manual;
+      saveManual(MANUAL);
+      buildResumen();
+      buildMonthStrip();
+      renderTx();
+      toast(`Restaurados ${data.manual.length} movimientos`);
+    } catch(err){ toast('Error: '+err.message,'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function deleteAllManual(){
+  if(!MANUAL.length){ toast('No hay movimientos manuales','error'); return; }
+  if(!confirm(`¿Borrar TODOS los ${MANUAL.length} movimientos manuales? Esta acción no se puede deshacer.`)) return;
+  MANUAL = [];
+  saveManual(MANUAL);
+  buildResumen();
+  renderTx();
+  toast('Movimientos manuales eliminados');
+}
+
+// ═══ INIT FROM LOCALSTORAGE ══════════════════════════════
+(function loadStoredBank(){
+  try {
+    const stored = localStorage.getItem('finanzas_bank_data');
+    if(stored){
+      const data = JSON.parse(stored);
+      if(Array.isArray(data) && data.length){
+        BANK_ROWS.length = 0;
+        data.forEach(r => BANK_ROWS.push(r));
+        recomputeData();
+      }
+    }
+  } catch(err){ console.error('Error loading stored bank data:', err); }
+})();
+
+setTimeout(updateLastUpdate, 500);
+
+// ═══ PWA (manifest-only) ═════════════════════════════════
+// Service Worker removed: requires hosting from a real URL (not file:// or blob:).
+// The app still installs as PWA via the manifest and persists data via localStorage.
+// For true offline support, host this file on any static hosting (GitHub Pages, Netlify, Vercel).
+
+
+buildResumen();
+buildSaldoChart();
+buildMensualChart();
+buildMonthStrip();
+renderTx();
+</script>
+</body>
+</html>
