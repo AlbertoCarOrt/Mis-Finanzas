@@ -2,12 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gastos Pareja">
 <meta name="theme-color" content="#0f172a">
 <title>Gastos de Pareja</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"Gastos de Pareja","short_name":"Pareja","start_url":"./GastosPareja.html","scope":"./","display":"standalone","orientation":"portrait","background_color":"%230f172a","theme_color":"%230f172a","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%233b82f6%22/><stop offset=%221%22 stop-color=%22%23ec4899%22/></linearGradient></defs><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22url(%23g)%22/><circle cx=%2270%22 cy=%2278%22 r=%2222%22 fill=%22white%22 opacity=%220.95%22/><circle cx=%22122%22 cy=%2278%22 r=%2222%22 fill=%22white%22 opacity=%220.95%22/><text x=%2296%22 y=%22158%22 font-size=%2256%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22800%22>%E2%82%AC</text></svg>","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%233b82f6%22/><stop offset=%221%22 stop-color=%22%23ec4899%22/></linearGradient></defs><rect width=%22512%22 height=%22512%22 rx=%22112%22 fill=%22url(%23g)%22/><circle cx=%22188%22 cy=%22210%22 r=%2260%22 fill=%22white%22 opacity=%220.95%22/><circle cx=%22324%22 cy=%22210%22 r=%2260%22 fill=%22white%22 opacity=%220.95%22/><text x=%22256%22 y=%22420%22 font-size=%22150%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22800%22>%E2%82%AC</text></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}'>
+<link rel="apple-touch-icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%233b82f6"/><stop offset="1" stop-color="%23ec4899"/></linearGradient></defs><rect width="180" height="180" rx="40" fill="url(%23g)"/><circle cx="66" cy="74" r="21" fill="white" opacity="0.95"/><circle cx="114" cy="74" r="21" fill="white" opacity="0.95"/><text x="90" y="150" font-size="54" text-anchor="middle" fill="white" font-family="Arial" font-weight="800">€</text></svg>'>
+<link rel="apple-touch-icon" sizes="180x180" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%233b82f6"/><stop offset="1" stop-color="%23ec4899"/></linearGradient></defs><rect width="180" height="180" rx="40" fill="url(%23g)"/><circle cx="66" cy="74" r="21" fill="white" opacity="0.95"/><circle cx="114" cy="74" r="21" fill="white" opacity="0.95"/><text x="90" y="150" font-size="54" text-anchor="middle" fill="white" font-family="Arial" font-weight="800">€</text></svg>'>
+<link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="%233b82f6"/><stop offset="1" stop-color="%23ec4899"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(%23g)"/><text x="32" y="46" font-size="36" text-anchor="middle" fill="white" font-family="Arial" font-weight="800">€</text></svg>'>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -995,6 +1000,14 @@ document.getElementById('gasto-fecha').valueAsDate = new Date();
 
 load();
 renderAll();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('SW register failed:', err);
+    });
+  });
+}
 </script>
 
 </body>
