@@ -873,6 +873,9 @@ let page=1, perPage=20, mesActivo='';
 let activeRange='year';
 let charts={};
 let modalType='g';
+let _txCurrentSlice=[];
+let BUDGETS={};
+let GOALS=[];
 
 function destroyChart(key){ if(charts[key]){ charts[key].destroy(); charts[key]=null; } }
 
@@ -1915,7 +1918,6 @@ renderTx();
 // ══════════════════════════════════════════════════
 
 // ── TRANSACTION SLICE (for detail modal) ─────────
-let _txCurrentSlice = [];
 
 function openTxDetailByIdx(idx){
   const r = _txCurrentSlice[idx];
@@ -2062,7 +2064,7 @@ function closeTxDetail(e){
 // ── BUDGETS ───────────────────────────────────────
 function loadBudgets(){try{return JSON.parse(localStorage.getItem('finanzas_budgets')||'{}');}catch{return {};}}
 function saveBudgetsStorage(b){localStorage.setItem('finanzas_budgets',JSON.stringify(b));}
-let BUDGETS=loadBudgets();
+BUDGETS=loadBudgets();
 
 function renderBudgets(){
   const now=new Date();
@@ -2145,7 +2147,7 @@ function deleteBudget(cat,e){
 // ── GOALS ─────────────────────────────────────────
 function loadGoals(){try{return JSON.parse(localStorage.getItem('finanzas_goals')||'[]');}catch{return [];}}
 function saveGoalsStorage(g){localStorage.setItem('finanzas_goals',JSON.stringify(g));}
-let GOALS=loadGoals();
+GOALS=loadGoals();
 
 const GOAL_EMOJIS=['🏖','🚗','🏠','📱','💍','✈️','🎓','💰','🏋️','🐶','👶','🎸','⛵','🏔','🎮','💊','🎄','🌍'];
 const GOAL_COLORS=['#3b82f6','#10b981','#f59e0b','#f43f5e','#8b5cf6','#14b8a6','#f97316','#ec4899'];
