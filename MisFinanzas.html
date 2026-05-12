@@ -1131,8 +1131,9 @@ function renderTx(){
   const total=filtered.length, totalPages=Math.max(1,Math.ceil(total/perPage));
   if(page>totalPages) page=1;
   const slice=filtered.slice((page-1)*perPage, page*perPage);
+  _txCurrentSlice = slice;
   document.getElementById('mov-count').textContent=total+' transacciones';
-  document.getElementById('txList').innerHTML=slice.map(r=>{
+  document.getElementById('txList').innerHTML=slice.map((r,idx)=>{
     const isI=r.Ingreso>0;
     const amt=isI?r.Ingreso:r.Gasto;
     const color=isI?'var(--green)':'var(--red)';
@@ -1143,8 +1144,7 @@ function renderTx(){
     const horaStr=r._hora?` · ${r._hora}`:'';
     const tipoBadge=r.Tipo?`<span class="tx-tipo ${r.Tipo==='Fijo'?'tt-fijo':'tt-var'}">${r.Tipo==='Fijo'?'F':'V'}</span>`:'';
     const delBtn=r._manual?`<button class="del-btn" onclick="deleteManual('${r._id}',event)">✕</button>`:'';
-    const txData = encodeURIComponent(JSON.stringify({Desc:r.Desc,Categoria:r.Categoria,Tipo:r.Tipo||'',Tipo2:r.Tipo,Ingreso:r.Ingreso,Gasto:r.Gasto,Fecha_Op:r.Fecha_Op,Saldo:r.Saldo,_manual:r._manual,_id:r._id,_hora:r._hora,_nota:r._nota}));
-    return `<div class="tx${r._manual?' manual':''}" onclick="openTxDetail(${txData})">
+    return `<div class="tx${r._manual?' manual':''}" onclick="openTxDetailByIdx(${idx})">
       <div class="tx-icon" style="background:${bg}">${icon}</div>
       <div class="tx-body">
         <div class="tx-desc">${r.Desc}</div>
@@ -1815,6 +1815,13 @@ function recomputeData(){
   buildMensualChart();
   buildMonthStrip();
   renderTx();
+  // Update new widgets
+  buildCategoryRing();
+  buildSpendSpeed();
+  buildSaldoTrend();
+  renderBudgets();
+  // Recompute CAT_AVG from imported data
+  recomputeCatAvg();
 }
 
 function updateLastUpdate(){
@@ -1906,6 +1913,54 @@ renderTx();
 // ══════════════════════════════════════════════════
 // NUEVAS FUNCIONALIDADES v2.0
 // ══════════════════════════════════════════════════
+
+// ── TRANSACTION SLICE (for detail modal) ─────────
+let _txCurrentSlice = [];
+
+function openTxDetailByIdx(idx){
+  const r = _txCurrentSlice[idx];
+  if(!r) return;
+  haptic('light');
+  const isI=r.Ingreso>0;
+  const amt=isI?r.Ingreso:r.Gasto;
+  const sign=isI?'+':'-';
+  const color=isI?'var(--green)':'var(--red)';
+  const icon=CAT_ICONS[r.Categoria]||'📋';
+  document.getElementById('txd-title').textContent=icon+' '+r.Categoria;
+  document.getElementById('txd-cat-row').innerHTML=`${r._manual?'<span style="color:var(--amber);font-weight:700">Manual </span>':''}<span style="color:var(--text2)">${r.Categoria}</span>`;
+  document.getElementById('txd-amount').textContent=sign+fmt(amt)+' €';
+  document.getElementById('txd-amount').style.color=color;
+  document.getElementById('txd-date').textContent=r.Fecha_Op+(r._hora?' · '+r._hora:'');
+  document.getElementById('txd-categoria').textContent=r.Categoria;
+  document.getElementById('txd-tipo').textContent=isI?'📥 Ingreso':'📤 Gasto';
+  document.getElementById('txd-fv').textContent=r.Tipo||'Variable';
+  document.getElementById('txd-saldo').textContent=r.Saldo!=null?fmt(r.Saldo)+' €':'—';
+  document.getElementById('txd-desc').textContent=r.Desc||'—';
+  const notaWrap=document.getElementById('txd-nota-wrap');
+  if(r._nota){notaWrap.style.display='block';document.getElementById('txd-nota').textContent=r._nota;}
+  else notaWrap.style.display='none';
+  document.getElementById('txDetailOverlay').classList.add('open');
+}
+
+// ── RECOMPUTE CAT_AVG AFTER IMPORT ───────────────
+function recomputeCatAvg(){
+  // Rebuild monthly averages per category from BANK_ROWS (exclude outlier months)
+  const catMonths = {};
+  for(const r of BANK_ROWS){
+    if(r.Gasto<=0) continue;
+    const mk=r.Fecha_Op.slice(6)+'-'+r.Fecha_Op.slice(3,5);
+    if(!catMonths[r.Categoria]) catMonths[r.Categoria]={};
+    catMonths[r.Categoria][mk]=(catMonths[r.Categoria][mk]||0)+r.Gasto;
+  }
+  for(const cat of Object.keys(catMonths)){
+    const vals=Object.values(catMonths[cat]).sort((a,b)=>a-b);
+    if(!vals.length) continue;
+    // Trim top 15% outliers
+    const cut=Math.max(1,Math.floor(vals.length*0.85));
+    const trimmed=vals.slice(0,cut);
+    CAT_AVG[cat]=Math.round(trimmed.reduce((s,v)=>s+v,0)/trimmed.length*100)/100;
+  }
+}
 
 // ── HAPTIC FEEDBACK ──────────────────────────────
 function haptic(type='light'){
@@ -1999,31 +2054,6 @@ function buildSaldoTrend(){
 }
 
 // ── TRANSACTION DETAIL MODAL ─────────────────────
-function openTxDetail(dataEncoded){
-  haptic('light');
-  let r;
-  try{r=typeof dataEncoded==='object'?dataEncoded:JSON.parse(decodeURIComponent(dataEncoded));}
-  catch{return;}
-  const isI=r.Ingreso>0;
-  const amt=isI?r.Ingreso:r.Gasto;
-  const sign=isI?'+':'-';
-  const color=isI?'var(--green)':'var(--red)';
-  const icon=CAT_ICONS[r.Categoria]||'📋';
-  document.getElementById('txd-title').textContent=icon+' '+r.Categoria;
-  document.getElementById('txd-cat-row').innerHTML=`${r._manual?'<span style="color:var(--amber);font-weight:700">M </span>':''}<span style="color:var(--text2)">${r.Categoria}</span>`;
-  document.getElementById('txd-amount').textContent=sign+fmt(amt)+' €';
-  document.getElementById('txd-amount').style.color=color;
-  document.getElementById('txd-date').textContent=r.Fecha_Op+(r._hora?' · '+r._hora:'');
-  document.getElementById('txd-categoria').textContent=r.Categoria;
-  document.getElementById('txd-tipo').textContent=isI?'📥 Ingreso':'📤 Gasto';
-  document.getElementById('txd-fv').textContent=r.Tipo||(r.Tipo2==='Fijo'?'Fijo':'Variable');
-  document.getElementById('txd-saldo').textContent=r.Saldo!=null?fmt(r.Saldo)+' €':'—';
-  document.getElementById('txd-desc').textContent=r.Desc||'—';
-  const notaWrap=document.getElementById('txd-nota-wrap');
-  if(r._nota){notaWrap.style.display='block';document.getElementById('txd-nota').textContent=r._nota;}
-  else notaWrap.style.display='none';
-  document.getElementById('txDetailOverlay').classList.add('open');
-}
 function closeTxDetail(e){
   if(!e||e.target===document.getElementById('txDetailOverlay'))
     document.getElementById('txDetailOverlay').classList.remove('open');
