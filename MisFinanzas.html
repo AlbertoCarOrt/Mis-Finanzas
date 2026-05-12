@@ -635,8 +635,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     <div class="config-section">
       <h3>🗑 Borrar movimientos manuales</h3>
       <p>Elimina todos los movimientos añadidos a mano. No afecta a los datos del banco.</p>
-      <button class="config-btn danger" onclick="deleteAllManual()">Borrar todo</button>
+      <button class="config-btn danger" onclick="deleteAllManual()">Borrar todo manual</button>
     </div>
+    <div class="config-section">
+      <h3>🔄 Borrar datos del banco importados</h3>
+      <p>Si la app muestra datos incorrectos o no muestra nada, borra los datos del banco importados. Se recuperarán los datos originales hardcodeados.</p>
+      <button class="config-btn danger" onclick="clearBankData()">Borrar datos banco</button>
+    </div>
+    <div class="config-section">
+      <h3>💥 Reset total</h3>
+      <p>Borra absolutamente todo (banco + manuales + presupuestos + metas) y recarga la app.</p>
+      <button class="config-btn danger" onclick="resetTotal()">Reset total</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Diagnóstico</div>
+    <div id="diag-panel" style="font-size:12px;color:var(--text2);line-height:1.8"></div>
   </div>
 </div>
 
@@ -1811,20 +1826,17 @@ function recomputeData(){
   window._saldoBase = lastSaldo;
 
   // Rebuild visible content
-  buildResumen();
-  // Destroy charts to force rebuild
+  safeRun('buildResumen',      buildResumen);
   Object.keys(charts).forEach(destroyChart);
-  buildSaldoChart();
-  buildMensualChart();
-  buildMonthStrip();
-  renderTx();
-  // Update new widgets
-  buildCategoryRing();
-  buildSpendSpeed();
-  buildSaldoTrend();
-  renderBudgets();
-  // Recompute CAT_AVG from imported data
-  recomputeCatAvg();
+  safeRun('buildSaldoChart',   buildSaldoChart);
+  safeRun('buildMensualChart', buildMensualChart);
+  safeRun('buildMonthStrip',   buildMonthStrip);
+  safeRun('renderTx',          renderTx);
+  safeRun('buildCategoryRing', ()=>{ if(typeof buildCategoryRing==='function') buildCategoryRing(); });
+  safeRun('buildSpendSpeed',   ()=>{ if(typeof buildSpendSpeed==='function') buildSpendSpeed(); });
+  safeRun('buildSaldoTrend',   ()=>{ if(typeof buildSaldoTrend==='function') buildSaldoTrend(); });
+  safeRun('renderBudgets',     ()=>{ if(typeof renderBudgets==='function') renderBudgets(); });
+  safeRun('recomputeCatAvg',   ()=>{ if(typeof recomputeCatAvg==='function') recomputeCatAvg(); });
 }
 
 function updateLastUpdate(){
@@ -1907,11 +1919,17 @@ setTimeout(updateLastUpdate, 500);
 // For true offline support, host this file on any static hosting (GitHub Pages, Netlify, Vercel).
 
 
-buildResumen();
-buildSaldoChart();
-buildMensualChart();
-buildMonthStrip();
-renderTx();
+// ═══ INIT SEGURO ══════════════════════════════════
+function safeRun(name, fn){
+  try { fn(); }
+  catch(e){ console.error('[MisFinanzas] Error en '+name+':', e); }
+}
+
+safeRun('buildResumen',    buildResumen);
+safeRun('buildSaldoChart', buildSaldoChart);
+safeRun('buildMensualChart', buildMensualChart);
+safeRun('buildMonthStrip', buildMonthStrip);
+safeRun('renderTx',        renderTx);
 
 // ══════════════════════════════════════════════════
 // NUEVAS FUNCIONALIDADES v2.0
@@ -2316,9 +2334,10 @@ function confirmGoalAdd(){
 const _origGoPage=goPage;
 window.goPage=function(id,btn){
   _origGoPage(id,btn);
-  if(id==='analisis') renderBudgets();
-  if(id==='plan'){renderGoals();}
-  if(id==='resumen'){buildCategoryRing();buildSpendSpeed();buildSaldoTrend();}
+  if(id==='analisis') safeRun('renderBudgets', renderBudgets);
+  if(id==='plan') safeRun('renderGoals', renderGoals);
+  if(id==='resumen'){ safeRun('buildCategoryRing', buildCategoryRing); safeRun('buildSpendSpeed', buildSpendSpeed); safeRun('buildSaldoTrend', buildSaldoTrend); }
+  if(id==='config') safeRun('renderDiagPanel', renderDiagPanel);
 };
 
 // ── NAV HAPTIC ─────────────────────────────────────
@@ -2333,12 +2352,46 @@ window.deleteManual=function(id,e){
   _origDeleteManual(id,e);
 };
 
+// ── RESET / DIAGNÓSTICO ──────────────────────────
+function clearBankData(){
+  if(!confirm('¿Borrar los datos del banco importados? Se recuperarán los datos originales.')) return;
+  localStorage.removeItem('finanzas_bank_data');
+  localStorage.removeItem('finanzas_bank_updated');
+  toast('Datos del banco borrados. Recargando...', 'success');
+  setTimeout(()=>location.reload(), 1200);
+}
+function resetTotal(){
+  if(!confirm('¿RESET TOTAL? Se borrarán todos los datos. Esta acción no se puede deshacer.')) return;
+  localStorage.clear();
+  toast('Reset completo. Recargando...', 'success');
+  setTimeout(()=>location.reload(), 1200);
+}
+function renderDiagPanel(){
+  const panel = document.getElementById('diag-panel');
+  if(!panel) return;
+  const bankStored = localStorage.getItem('finanzas_bank_data');
+  const bankRows = bankStored ? (() => { try { return JSON.parse(bankStored).length; } catch(e){ return 'Error JSON'; } })() : 'No (usando datos originales)';
+  const chartLib = typeof Chart !== 'undefined' ? '✅ Chart.js cargado' : '❌ Chart.js NO disponible';
+  const xlsxLib  = typeof XLSX  !== 'undefined' ? '✅ XLSX cargado'    : '❌ XLSX NO disponible';
+  panel.innerHTML = `
+    <div>${chartLib}</div>
+    <div>${xlsxLib}</div>
+    <div>📊 BANK_ROWS en memoria: <strong>${BANK_ROWS.length}</strong> filas</div>
+    <div>💾 Banco en localStorage: <strong>${bankRows}</strong> filas</div>
+    <div>✏️ Manuales: <strong>${MANUAL.length}</strong></div>
+    <div>🎯 Presupuestos: <strong>${Object.keys(BUDGETS).length}</strong></div>
+    <div>⭐ Metas: <strong>${GOALS.length}</strong></div>
+    <div>📅 MONTHLY: <strong>${MONTHLY.length}</strong> meses</div>
+    <div>💰 SALDO_DATA: <strong>${SALDO_DATA.length}</strong> puntos</div>
+  `;
+}
+
 // ── INIT NEW FEATURES ─────────────────────────────
-buildCategoryRing();
-buildSpendSpeed();
-buildSaldoTrend();
-renderBudgets();
-renderGoals();
+safeRun('buildCategoryRing', buildCategoryRing);
+safeRun('buildSpendSpeed',   buildSpendSpeed);
+safeRun('buildSaldoTrend',   buildSaldoTrend);
+safeRun('renderBudgets',     renderBudgets);
+safeRun('renderGoals',       renderGoals);
 </script>
 </body>
 </html>
