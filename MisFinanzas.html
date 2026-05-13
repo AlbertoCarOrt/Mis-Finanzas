@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -2695,6 +2698,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
+const APP_VERSION = 'v11 · 2026-05-13 · XLSX inline + backup completo';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
@@ -2703,6 +2707,7 @@ function renderDiagPanel(){
   const chartLib = typeof Chart !== 'undefined' ? '✅ Chart.js cargado' : '❌ Chart.js NO disponible';
   const xlsxLib  = typeof XLSX  !== 'undefined' ? '✅ XLSX cargado'    : '❌ XLSX NO disponible';
   panel.innerHTML = `
+    <div style="background:var(--bg3);padding:6px 10px;border-radius:6px;margin-bottom:8px;font-size:11px;color:var(--blue);font-weight:600">📦 ${APP_VERSION}</div>
     <div>${chartLib}</div>
     <div>${xlsxLib}</div>
     <div>📊 BANK_ROWS en memoria: <strong>${BANK_ROWS.length}</strong> filas</div>
