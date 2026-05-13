@@ -1940,6 +1940,7 @@ function _doExcelImport(file){
     try {
       const data = new Uint8Array(ev.target.result);
       const wb = await XLSX.read(data, {type:'array'});
+      console.log('[XLSX] Hojas en el archivo:', wb.SheetNames);
 
       // Try Tabla actualizada first, otherwise fall back to Movimientos (raw bank data)
       let sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('tabla actualizada'))
@@ -1950,7 +1951,18 @@ function _doExcelImport(file){
                  || wb.SheetNames.find(n => n.toLowerCase().includes('movim'));
         isRaw = !!sheetName;
       }
-      if(!sheetName){ toast('No se encontró la hoja de datos','error'); return; }
+      // Fallback: usar la primera hoja con contenido y reclasificar como datos brutos
+      if(!sheetName && wb.SheetNames.length){
+        for(const n of wb.SheetNames){
+          const s = wb.Sheets[n];
+          if(s && (s._R||0) > 1){ sheetName = n; isRaw = true; break; }
+        }
+      }
+      if(!sheetName){
+        const list = wb.SheetNames.length ? wb.SheetNames.join(', ') : '(ninguna)';
+        toast(`No se encontró la hoja de datos. Hojas detectadas: ${list}`,'error');
+        return;
+      }
 
       const sheet = wb.Sheets[sheetName];
       const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true});
@@ -2698,7 +2710,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v11 · 2026-05-13 · XLSX inline + backup completo';
+const APP_VERSION = 'v12 · 2026-05-13 · fallback hoja + diag mejorada';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
