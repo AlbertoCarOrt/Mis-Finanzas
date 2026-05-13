@@ -13,6 +13,95 @@
 <link rel="manifest" href='data:application/manifest+json,{"name":"Mis Finanzas 2025","short_name":"Finanzas","start_url":".","display":"standalone","background_color":"%230f172a","theme_color":"%230f172a","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22><rect width=%22512%22 height=%22512%22 rx=%22110%22 fill=%22%230f172a%22/><rect width=%22512%22 height=%22512%22 rx=%22110%22 fill=%22url(%23g)%22 opacity=%220.7%22/><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%233b82f6%22/><stop offset=%221%22 stop-color=%22%238b5cf6%22/></linearGradient></defs><text x=%22256%22 y=%22340%22 font-size=%22280%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>%E2%82%AC</text></svg>","sizes":"512x512","type":"image/svg+xml"},{"src":"data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22><rect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%233b82f6%22/><text x=%2296%22 y=%22130%22 font-size=%22110%22 text-anchor=%22middle%22 fill=%22white%22 font-family=%22Arial%22 font-weight=%22bold%22>%E2%82%AC</text></svg>","sizes":"192x192","type":"image/svg+xml"}]}'>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── CHART.JS FALLBACK (activa si CDN bloqueado) ───────────────────────────
+if(typeof Chart==='undefined'){
+(function(){
+class Chart{
+  constructor(el,cfg){this.el=el;this.cfg=cfg;this._draw();}
+  destroy(){const c=this.el?.getContext('2d');if(c)c.clearRect(0,0,this.el.width,this.el.height);}
+  _setup(){
+    const el=this.el, W=el.offsetWidth||el.parentElement?.offsetWidth||300, H=el.offsetHeight||el.parentElement?.offsetHeight||150, dpr=window.devicePixelRatio||1;
+    el.width=W*dpr; el.height=H*dpr; el.style.width=W+'px'; el.style.height=H+'px';
+    const ctx=el.getContext('2d'); ctx.scale(dpr,dpr); return{ctx,W,H};
+  }
+  _draw(){const t=this.cfg.type;if(t==='line')this._line();else if(t==='bar')this._bar();else if(t==='doughnut')this._donut();}
+  _line(){
+    const{ctx,W,H}=this._setup(),ds=this.cfg.data.datasets[0],labels=this.cfg.data.labels;
+    const raw=ds.data.map(v=>v===null?null:+v),vals=raw.filter(v=>v!==null);
+    if(!vals.length)return;
+    const p={t:10,r:10,b:26,l:40},min=Math.min(...vals),max=Math.max(...vals),range=max-min||1,n=raw.length;
+    const px=i=>p.l+i*(W-p.l-p.r)/(n-1||1),py=v=>p.t+(1-(v-min)/range)*(H-p.t-p.b);
+    ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=p.t+i*(H-p.t-p.b)/4;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
+    if(ds.fill!==false){
+      ctx.beginPath();let f=true;
+      raw.forEach((v,i)=>{if(v===null)return;if(f){ctx.moveTo(px(i),py(v));f=false;}else ctx.lineTo(px(i),py(v));});
+      ctx.lineTo(px(n-1),H-p.b);ctx.lineTo(px(0),H-p.b);ctx.closePath();
+      ctx.fillStyle=ds.backgroundColor||'rgba(59,130,246,0.1)';ctx.fill();
+    }
+    ctx.beginPath();ctx.lineWidth=ds.borderWidth||2;ctx.strokeStyle=ds.borderColor||'#3b82f6';ctx.lineJoin='round';
+    let st=false;raw.forEach((v,i)=>{if(v===null){st=false;return;}if(!st){ctx.moveTo(px(i),py(v));st=true;}else ctx.lineTo(px(i),py(v));});
+    ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='10px system-ui';ctx.textAlign='center';
+    const step=Math.ceil(n/8);labels.forEach((l,i)=>{if(i%step===0)ctx.fillText(l,px(i),H-6);});
+    ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=min+range*(4-i)/4;const lbl=Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0);ctx.fillText(lbl,p.l-4,p.t+i*(H-p.t-p.b)/4+4);}
+  }
+  _bar(){
+    const{ctx,W,H}=this._setup(),labels=this.cfg.data.labels,datasets=this.cfg.data.datasets;
+    const stacked=this.cfg.options?.scales?.x?.stacked;
+    const p={t:10,r:10,b:26,l:42},n=labels.length,gW=(W-p.l-p.r)/n;
+    let max;
+    if(stacked)max=Math.max(...labels.map((_,i)=>datasets.reduce((s,d)=>s+Math.abs(+d.data[i]||0),0)));
+    else max=Math.max(...datasets.flatMap(d=>d.data.map(v=>v===null?0:Math.abs(+v||0))));
+    if(!max)max=1;
+    const hasNeg=datasets.some(d=>d.data.some(v=>v!==null&&+v<0));
+    ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+    for(let i=0;i<=4;i++){const y=p.t+i*(H-p.t-p.b)/4;ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();}
+    if(hasNeg){ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.beginPath();const zy=H-p.b-0;ctx.moveTo(p.l,zy);ctx.lineTo(W-p.r,zy);ctx.stroke();}
+    labels.forEach((l,i)=>{
+      if(stacked){
+        let off=0;datasets.forEach(ds=>{const v=+ds.data[i]||0;if(!v)return;const bH=Math.abs(v)/max*(H-p.t-p.b);const x=p.l+i*gW+gW*0.15,bW=gW*0.7;ctx.fillStyle=Array.isArray(ds.backgroundColor)?ds.backgroundColor[i]:ds.backgroundColor;ctx.fillRect(x,H-p.b-off-bH,bW,bH);off+=bH;});
+      } else {
+        const nd=datasets.length,bW=gW*0.78/nd;
+        datasets.forEach((ds,di)=>{const rawV=ds.data[i];if(rawV===null)return;const v=+rawV||0;const x=p.l+i*gW+gW*0.11+di*bW;const bH=Math.abs(v)/max*(H-p.t-p.b);ctx.fillStyle=Array.isArray(ds.backgroundColor)?ds.backgroundColor[i]:ds.backgroundColor;if(v>=0)ctx.fillRect(x,H-p.b-bH,bW,bH);else ctx.fillRect(x,H-p.b,bW,bH);});
+      }
+      ctx.fillStyle='#64748b';ctx.font='10px system-ui';ctx.textAlign='center';ctx.fillText(l,p.l+i*gW+gW/2,H-6);
+    });
+    ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=max*(4-i)/4;ctx.fillStyle='#64748b';ctx.font='10px system-ui';ctx.fillText(Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v.toFixed(0),p.l-4,p.t+i*(H-p.t-p.b)/4+4);}
+  }
+  _donut(){
+    const{ctx,W,H}=this._setup(),ds=this.cfg.data.datasets[0];
+    const data=ds.data.map(v=>+v||0),colors=ds.backgroundColor;
+    const cutout=parseFloat(this.cfg.options?.cutout||'60')/100;
+    const cx=W/2,cy=H/2,r=Math.min(W,H)/2-6,ri=r*cutout,total=data.reduce((s,v)=>s+v,0);
+    if(!total)return;
+    let angle=-Math.PI/2;
+    data.forEach((v,i)=>{
+      const arc=v/total*Math.PI*2;
+      ctx.beginPath();ctx.arc(cx,cy,r,angle,angle+arc);ctx.arc(cx,cy,ri,angle+arc,angle,true);ctx.closePath();
+      ctx.fillStyle=colors[i]||'#64748b';ctx.fill();
+      if(ds.borderWidth){ctx.strokeStyle=ds.borderColor||'#1e293b';ctx.lineWidth=ds.borderWidth;ctx.stroke();}
+      angle+=arc;
+    });
+  }
+}
+window.Chart=Chart;
+})();
+}
+
+// ── XLSX LAZY LOADER ─────────────────────────────────────────────────────
+function ensureXLSX(cb){
+  if(typeof XLSX!=='undefined'){cb(true);return;}
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=()=>cb(true);
+  s.onerror=()=>{toast('XLSX no disponible. Usa la app desde Netlify o GitHub Pages para importar Excel.','error');cb(false);};
+  document.head.appendChild(s);
+}
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -1632,6 +1721,10 @@ function applyConceptoFormula(ccComun, ccPropio, cc1, hasGasto){
 function handleExcelImport(e){
   const file = e.target.files[0];
   if(!file) return;
+  ensureXLSX(ok=>{ if(ok) _doExcelImport(file); });
+  e.target.value='';
+}
+function _doExcelImport(file){
   const reader = new FileReader();
   reader.onload = function(ev){
     try {
@@ -1755,7 +1848,6 @@ function handleExcelImport(e){
     }
   };
   reader.readAsArrayBuffer(file);
-  e.target.value = '';
 }
 
 function recomputeData(){
