@@ -1970,11 +1970,12 @@ function _doExcelImport(file){
 
       // Find header row (look for "Fecha")
       let headerIdx = 0;
-      for(let i = 0; i < Math.min(8, rows.length); i++){
-        if(rows[i].some(c => typeof c === 'string' && c.includes('Fecha'))){ headerIdx = i; break; }
+      for(let i = 0; i < Math.min(15, rows.length); i++){
+        if(rows[i].some(c => typeof c === 'string' && /fecha/i.test(c))){ headerIdx = i; break; }
       }
       const headers = rows[headerIdx].map(h => String(h||'').trim());
       const dataRows = rows.slice(headerIdx+1);
+      console.log('[XLSX] Cabeceras detectadas:', headers);
 
       const findCol = (...names) => {
         for(const n of names){
@@ -1983,16 +1984,21 @@ function _doExcelImport(file){
         }
         return -1;
       };
-      const cFecha = findCol('Fecha valor','F. Valor','F.Valor','Fecha');
-      const cIng   = findCol('Ingreso');
-      const cGas   = findCol('Gasto');
+      const cFecha = findCol('Fecha valor','F. Valor','F.Valor','Fecha operación','Fecha op','Fecha');
+      let cIng    = findCol('Ingreso','Abono','Haber','Crédito','Credito');
+      let cGas    = findCol('Gasto','Cargo','Debe','Débito','Debito');
+      const cImporte = findCol('Importe','Cantidad','Monto');
       const cSaldo = findCol('Saldo (+)','Saldo +','Saldo');
       const cCComun  = findCol('Concepto común','Concepto comun');
       const cCPropio = findCol('Concepto propio');
-      const cCC1     = findCol('Concepto complementario 1','complementario 1');
+      const cCC1     = findCol('Concepto complementario 1','complementario 1','Concepto','Descripción','Descripcion','Detalle');
 
-      if(cFecha < 0 || cIng < 0 || cGas < 0){
-        toast('Columnas requeridas no encontradas','error');
+      // Si no hay Ingreso/Gasto pero hay Importe, lo separamos por signo
+      const useImporte = (cIng < 0 || cGas < 0) && cImporte >= 0;
+
+      if(cFecha < 0 || (!useImporte && (cIng < 0 || cGas < 0))){
+        const sample = headers.filter(Boolean).join(' | ') || '(sin cabeceras)';
+        toast(`Columnas no encontradas. Cabeceras vistas: ${sample}`,'error');
         return;
       }
 
@@ -2004,8 +2010,15 @@ function _doExcelImport(file){
         const fecha = excelDateToStr(fechaRaw);
         if(!/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) continue;
 
-        const ing = parseFloat(r[cIng]) || 0;
-        const gas = parseFloat(r[cGas]) || 0;
+        let ing = 0, gas = 0;
+        if(useImporte){
+          const imp = parseFloat(String(r[cImporte]).replace(',','.')) || 0;
+          if(imp > 0) ing = imp;
+          else if(imp < 0) gas = -imp;
+        } else {
+          ing = parseFloat(String(r[cIng]).replace(',','.')) || 0;
+          gas = parseFloat(String(r[cGas]).replace(',','.')) || 0;
+        }
         if(ing === 0 && gas === 0) continue;
 
         const saldo = parseFloat(r[cSaldo]);
@@ -2710,7 +2723,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v12 · 2026-05-13 · fallback hoja + diag mejorada';
+const APP_VERSION = 'v13 · 2026-05-13 · más cabeceras + Importe único';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
