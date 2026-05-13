@@ -100,10 +100,22 @@ window.XLSX=(function(){
   function c2i(c){let n=0;for(let i=0;i<c.length;i++)n=n*26+c.charCodeAt(i)-64;return n;}
   function i2c(n){let s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;}
   async function unzip(buf){
+    if(buf.length<22) throw new Error(`Archivo muy pequeño (${buf.length} bytes)`);
+    const head=Array.from(buf.slice(0,8)).map(b=>b.toString(16).padStart(2,'0')).join(' ');
+    console.log('[XLSX] Cabecera del archivo:', head, '— tamaño:', buf.length);
+    if(buf[0]===0xd0&&buf[1]===0xcf&&buf[2]===0x11&&buf[3]===0xe0){
+      throw new Error('Es un .xls antiguo (binario). Ábrelo en Excel y guárdalo como .xlsx (formato Libro de Excel).');
+    }
+    if(buf[0]===0x3c||(buf[0]===0xef&&buf[1]===0xbb&&buf[2]===0xbf&&buf[3]===0x3c)){
+      throw new Error('El archivo es HTML, no Excel real. Vuelve a exportar desde Ibercaja eligiendo "Excel" (no "HTML").');
+    }
+    if(buf[0]!==0x50||buf[1]!==0x4b){
+      throw new Error(`No es .xlsx válido. Primeros bytes: ${head.slice(0,11)}. Reexporta desde el banco.`);
+    }
     const dv=new DataView(buf.buffer,buf.byteOffset,buf.byteLength);
     let eocd=-1;
     for(let i=buf.length-22;i>=Math.max(0,buf.length-65558);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break;}}
-    if(eocd<0)throw new Error('No es un ZIP válido');
+    if(eocd<0)throw new Error('ZIP sin directorio central (archivo corrupto o truncado).');
     const cdN=dv.getUint16(eocd+8,true),cdOff=dv.getUint32(eocd+16,true);
     const entries={};let p=cdOff;
     for(let i=0;i<cdN;i++){
