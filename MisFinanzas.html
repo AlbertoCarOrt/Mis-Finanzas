@@ -450,7 +450,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     <div class="card-title">Gastos este mes por categoría</div>
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
       <div class="ring-wrap" style="width:130px;height:130px;flex-shrink:0">
-        <canvas id="cRing" role="img" aria-label="Gastos por categoría"></canvas>
+        <canvas id="cRing" role="img" aria-label="Gastos por categoría" style="width:130px;height:130px;display:block"></canvas>
         <div class="ring-center">
           <div class="rc-val r" id="ring-total">—</div>
           <div class="rc-lbl">gastado</div>
@@ -673,6 +673,99 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 </div>
 
 
+<!-- ═══ PAGE: AYUDA ═══ -->
+<div class="page" id="pg-ayuda">
+  <div class="hdr" style="display:flex;align-items:center;justify-content:space-between">
+    <div><h1>Guía de uso</h1><p>Cómo sacar el máximo partido</p></div>
+    <button onclick="goPageById('resumen')" style="background:none;border:none;color:var(--text3);font-size:22px;padding:4px;cursor:pointer">✕</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📱 Instalación en iPhone</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p style="margin-bottom:8px">Para tener la app en tu pantalla de inicio:</p>
+      <p>1. Abre la URL en <strong>Safari</strong> (no Chrome ni otro navegador)</p>
+      <p>2. Pulsa el botón <strong>Compartir</strong> (cuadro con flecha hacia arriba)</p>
+      <p>3. Selecciona <strong>"Añadir a pantalla de inicio"</strong></p>
+      <p>4. Pulsa <strong>Añadir</strong> — ya aparece el icono como una app nativa</p>
+      <p style="margin-top:8px;font-size:11px;color:var(--text3)">La app funciona sin conexión a internet. Los datos se guardan en tu dispositivo.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗂 Las pestañas</div>
+    <div style="font-size:13px;line-height:1.8;color:var(--text2)">
+      <p><strong style="color:var(--text)">Resumen</strong> — Saldo actual, KPIs del año, anillo de gastos del mes en curso y gráficos de evolución.</p>
+      <p><strong style="color:var(--text)">Análisis</strong> — Compara gastos fijos vs variables por periodo. Aquí también gestionas los presupuestos mensuales.</p>
+      <p><strong style="color:var(--text)">Plan</strong> — Plan de ahorro adaptado (Suave / Moderado / Agresivo) con seguimiento real de cada categoría. Incluye metas de ahorro.</p>
+      <p><strong style="color:var(--text)">Movimientos</strong> — Listado completo con búsqueda, filtros por categoría, mes y tipo. Pulsa cualquier movimiento para ver su detalle.</p>
+      <p><strong style="color:var(--text)">Config</strong> — Importar banco, exportar datos, backup y diagnóstico.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">➕ Añadir movimientos manuales</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p>Pulsa el botón <strong style="color:var(--blue)">+</strong> azul (esquina inferior derecha) para añadir un movimiento a mano.</p>
+      <p style="margin-top:6px">Rellena: tipo (gasto/ingreso), importe, descripción, categoría, si es fijo o variable, fecha y hora. El campo <em>nota</em> es opcional.</p>
+      <p style="margin-top:6px">Los movimientos manuales aparecen marcados con una <strong style="color:var(--amber)">M</strong> en la lista.</p>
+      <p style="margin-top:6px">Para borrar uno: ve a Movimientos, busca el movimiento y pulsa la <strong>✕</strong> a su derecha. O desliza para ver la opción de eliminar.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📥 Importar datos del banco (Ibercaja)</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p>1. Exporta tu extracto desde la web de Ibercaja en formato <strong>.xlsx</strong></p>
+      <p>2. Ve a <strong>Config → Cargar Excel del banco</strong></p>
+      <p>3. Selecciona el archivo — la app lo procesa y actualiza todos los datos automáticamente</p>
+      <p style="margin-top:6px">La app busca la hoja <em>"Tabla actualizada"</em>. Si no existe, intenta con la hoja <em>"Movimientos"</em> y reclasifica los conceptos automáticamente.</p>
+      <p style="margin-top:6px;font-size:11px;color:var(--text3)">Tus movimientos manuales se conservan siempre al importar.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 Presupuestos mensuales</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p>En la pestaña <strong>Análisis</strong>, al final de la página, puedes crear presupuestos mensuales por categoría.</p>
+      <p style="margin-top:6px">La barra muestra cuánto has gastado respecto al límite que hayas fijado:</p>
+      <p>🟢 <strong>OK</strong> — por debajo del 80%</p>
+      <p>🟡 <strong>Cerca</strong> — entre el 80% y el 100%</p>
+      <p>🔴 <strong>Excedido</strong> — superado el límite</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⭐ Metas de ahorro</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p>En la pestaña <strong>Plan</strong>, al final, puedes crear metas con nombre, emoji, color y objetivo en euros.</p>
+      <p style="margin-top:6px">Pulsa <strong>"+ Añadir dinero"</strong> para registrar cuando ingresas dinero hacia esa meta. Cuando alcances el 100% la app te lo celebra.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💾 Backup y restauración</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p>En <strong>Config</strong> puedes:</p>
+      <p>• <strong>Descargar backup JSON</strong> — guarda todos tus movimientos manuales en un archivo</p>
+      <p>• <strong>Restaurar backup</strong> — recupera tus movimientos desde ese archivo</p>
+      <p>• <strong>Exportar CSV</strong> — abre los movimientos en Excel o Numbers</p>
+      <p style="margin-top:8px;font-size:11px;color:var(--amber)">⚠ Los datos del banco importados viven solo en este dispositivo/navegador. Haz backup regularmente.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👆 Gestos y atajos</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--text2)">
+      <p>• <strong>Deslizar horizontalmente</strong> — cambia de pestaña (swipe izquierda/derecha)</p>
+      <p>• <strong>Tocar un movimiento</strong> — abre el detalle completo de esa transacción</p>
+      <p>• <strong>Tocar un emoji/color</strong> en metas — selección con vibración táctil</p>
+    </div>
+  </div>
+
+  <button class="config-btn" style="margin-top:4px" onclick="goPageById('resumen')">Volver al inicio</button>
+</div>
+
 <!-- ═══ PAGE: CONFIG ═══ -->
 <div class="page" id="pg-config">
   <div class="hdr"><h1>Configuración</h1><p>Datos y app</p></div>
@@ -742,6 +835,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     <div class="card-title">Diagnóstico</div>
     <div id="diag-panel" style="font-size:12px;color:var(--text2);line-height:1.8"></div>
   </div>
+
+  <button class="config-btn sec" onclick="goPageById('ayuda')" style="margin-top:4px">
+    📖 Guía de uso de la app
+  </button>
 </div>
 
 <!-- MODAL: Detalle Transacción -->
@@ -1533,7 +1630,21 @@ function toast(msg, type='success'){
 }
 
 function goPageById(id){
-  document.querySelector(`.nav-btn[onclick*="'${id}'"]`)?.click();
+  const btn=document.querySelector(`.nav-btn[onclick*="'${id}'"]`);
+  if(btn){btn.click();return;}
+  // Páginas sin botón de nav (ej: prev)
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('pg-'+id);
+  if(!pg) return;
+  pg.classList.add('active');
+  document.getElementById('fabBtn').style.display='none';
+  if(id==='prev') buildForecast();
+  if(id==='plan') renderPlan();
+  if(id==='ayuda') renderAyuda();
+}
+
+function renderAyuda(){
+  // Static page — nothing to render dynamically
 }
 
 
