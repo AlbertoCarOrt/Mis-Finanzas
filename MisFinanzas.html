@@ -831,10 +831,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     <div class="card-title">💾 Backup y restauración</div>
     <div style="font-size:13px;line-height:1.7;color:var(--text2)">
       <p>En <strong>Config</strong> puedes:</p>
-      <p>• <strong>Descargar backup JSON</strong> — guarda todos tus movimientos manuales en un archivo</p>
-      <p>• <strong>Restaurar backup</strong> — recupera tus movimientos desde ese archivo</p>
-      <p>• <strong>Exportar CSV</strong> — abre los movimientos en Excel o Numbers</p>
-      <p style="margin-top:8px;font-size:11px;color:var(--amber)">⚠ Los datos del banco importados viven solo en este dispositivo/navegador. Haz backup regularmente.</p>
+      <p>• <strong>Descargar backup completo</strong> — guarda todo en un JSON: banco + manuales + presupuestos + metas</p>
+      <p>• <strong>Restaurar backup</strong> — recupera todos los datos desde ese archivo</p>
+      <p>• <strong>Exportar CSV</strong> — abre los movimientos manuales en Excel o Numbers</p>
+      <p style="margin-top:8px;font-size:12px;color:var(--blue);line-height:1.5"><strong>💡 PC → iPhone:</strong> importa el Excel en el PC, descarga el backup completo, mándalo al iPhone (AirDrop, email, iCloud) y restáuralo desde Config.</p>
     </div>
   </div>
 
@@ -877,12 +877,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     </div>
     <div class="config-section">
       <h3>💾 Backup completo (JSON)</h3>
-      <p>Guarda un respaldo de todos tus movimientos manuales. Útil antes de borrar datos del navegador.</p>
-      <button class="config-btn sec" onclick="exportBackup()">Descargar backup</button>
+      <p>Guarda <strong>todo</strong>: datos del banco + manuales + presupuestos + metas. Perfecto para llevar tus datos a otro dispositivo (ej: PC → iPhone) o como respaldo antes de borrar el navegador.</p>
+      <button class="config-btn sec" onclick="exportBackup()">Descargar backup completo</button>
     </div>
     <div class="config-section">
       <h3>♻️ Restaurar backup</h3>
-      <p>Carga un backup previo. Reemplaza los movimientos manuales actuales.</p>
+      <p>Carga un backup previo. Reemplaza los datos actuales del dispositivo con los del archivo.</p>
       <input type="file" id="fileBackup" class="file-input" accept=".json" onchange="importBackup(event)">
       <button class="config-btn sec" onclick="document.getElementById('fileBackup').click()">Cargar backup JSON</button>
     </div>
@@ -2138,18 +2138,24 @@ function updateLastUpdate(){
 
 // ═══ BACKUP/RESTORE ══════════════════════════════════════
 function exportBackup(){
+  let bank=[];
+  try{ bank=JSON.parse(localStorage.getItem('finanzas_bank_data')||'[]'); }catch{}
   const data = {
-    version: 1,
+    version: 2,
     exported: new Date().toISOString(),
     manual: MANUAL,
-    bank_present: !!localStorage.getItem('finanzas_bank_data')
+    bank: bank,
+    bank_updated: localStorage.getItem('finanzas_bank_updated')||null,
+    budgets: BUDGETS,
+    goals: GOALS
   };
-  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0,10);
   const a = document.createElement('a');
-  a.href = url; a.download = 'mis-finanzas-backup.json';
+  a.href = url; a.download = `mis-finanzas-backup-${stamp}.json`;
   a.click(); URL.revokeObjectURL(url);
-  toast('Backup descargado');
+  toast(`Backup completo: ${bank.length} banco + ${MANUAL.length} manuales`);
 }
 
 function importBackup(e){
@@ -2159,14 +2165,38 @@ function importBackup(e){
   reader.onload = function(ev){
     try {
       const data = JSON.parse(ev.target.result);
-      if(!Array.isArray(data.manual)){ toast('Archivo inválido','error'); return; }
-      if(!confirm(`Reemplazar ${MANUAL.length} movimientos manuales con ${data.manual.length} del backup?`)) return;
-      MANUAL = data.manual;
-      saveManual(MANUAL);
+      if(!data || (!Array.isArray(data.manual) && !Array.isArray(data.bank))){ toast('Archivo inválido','error'); return; }
+      const nB = Array.isArray(data.bank) ? data.bank.length : 0;
+      const nM = Array.isArray(data.manual) ? data.manual.length : 0;
+      const nG = Array.isArray(data.goals) ? data.goals.length : 0;
+      const nP = data.budgets ? Object.keys(data.budgets).length : 0;
+      if(!confirm(`Restaurar backup?\n• ${nB} movs. de banco\n• ${nM} movs. manuales\n• ${nP} presupuestos\n• ${nG} metas\n\nReemplaza todos los datos actuales.`)) return;
+
+      if(Array.isArray(data.manual)){
+        MANUAL = data.manual;
+        saveManual(MANUAL);
+      }
+      if(Array.isArray(data.bank) && data.bank.length){
+        localStorage.setItem('finanzas_bank_data', JSON.stringify(data.bank));
+        if(data.bank_updated) localStorage.setItem('finanzas_bank_updated', data.bank_updated);
+        BANK_ROWS.length = 0;
+        data.bank.forEach(r => BANK_ROWS.push(r));
+        recomputeData();
+      }
+      if(data.budgets && typeof data.budgets==='object'){
+        BUDGETS = data.budgets;
+        saveBudgetsStorage(BUDGETS);
+      }
+      if(Array.isArray(data.goals)){
+        GOALS = data.goals;
+        saveGoalsStorage(GOALS);
+      }
+
       buildResumen();
       buildMonthStrip();
       renderTx();
-      toast(`Restaurados ${data.manual.length} movimientos`);
+      if(typeof updateLastUpdate==='function') updateLastUpdate();
+      toast(`✓ Backup restaurado: ${nB} banco + ${nM} manuales`);
     } catch(err){ toast('Error: '+err.message,'error'); }
   };
   reader.readAsText(file);
