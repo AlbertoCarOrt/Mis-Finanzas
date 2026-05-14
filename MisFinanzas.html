@@ -1095,6 +1095,7 @@ const FIXED_CATS = {"Gasto tarjeta": 76.7, "Móvil + Fibra": 50.0, "Seguros": 81
 const CAT_AVG = {"Gasto tarjeta": 1840.92, "Bizum": 563.49, "Comunidad": 242.45, "Móvil + Fibra": 50.0, "Seguros": 97.21, "Plataformas digitales": 25.03, "Transferencias": 750.0, "Hipoteca": 487.98, "Estanco": 55.04, "Gasolina": 107.35, "Aparcamiento": 21.88, "Autopistas": 23.8, "Cuenta común": 100.0, "Seguro coche": 87.89, "Gastos varios": 2568.18, "Tasación": 293.06, "Máster": 164.0, "Imp. circulación": 44.72};
 const CAT_TIPO = {"Nomina": "Fijo", "Devoluciones": "Variable", "Transferencias": "Fijo", "Bizum": "Variable", "Donación": "Variable", "Prestamo": "Variable", "Gastos varios": "Variable", "Comunidad": "Fijo", "Móvil + Fibra": "Fijo", "Seguros": "Fijo", "Hipoteca": "Fijo", "Seguro coche": "Fijo", "Tasación": "Variable", "Imp. circulación": "Fijo", "Máster": "Fijo", "Gasto tarjeta": "Variable", "Aparcamiento": "Fijo", "Plataformas digitales": "Fijo", "Cuenta común": "Fijo", "Autopistas": "Variable", "Estanco": "Variable", "Gasolina": "Fijo", "Compra vivienda": "Variable"};
 const TOTALES_TIPO = {"Fijo": 15552.01, "Variable": 249081.82};
+let NOMINA_EST = 2030.86;
 
 const GASTO_CATS = Object.keys(CAT_TIPO).filter(c=>['Gastos varios','Comunidad','Móvil + Fibra','Seguros','Transferencias','Hipoteca','Seguro coche','Bizum','Tasación','Imp. circulación','Máster','Gasto tarjeta','Aparcamiento','Plataformas digitales','Cuenta común','Autopistas','Estanco','Gasolina','Compra vivienda'].includes(c));
 const INGRESO_CATS = ['Nomina','Devoluciones','Bizum','Transferencias','Donación','Prestamo','Otros ingresos'];
@@ -1384,7 +1385,7 @@ function buildForecast(){
   });
 
   const totalFc = Object.values(forecast).reduce((s,v)=>s+v.amt,0);
-  const nomina = 2030.86;
+  const nomina = NOMINA_EST;
   const saving = nomina-totalFc;
   const savingPct = nomina>0?(saving/nomina*100).toFixed(1):0;
 
@@ -2362,7 +2363,7 @@ function openTxDetailByIdx(idx){
   document.getElementById('txDetailOverlay').classList.add('open');
 }
 
-// ── RECOMPUTE CAT_AVG AFTER IMPORT ───────────────
+// ── RECOMPUTE CAT_AVG / FIXED_CATS / NOMINA_EST AFTER IMPORT ───────────────
 function recomputeCatAvg(){
   // Rebuild monthly averages per category from BANK_ROWS (exclude outlier months)
   const catMonths = {};
@@ -2375,10 +2376,27 @@ function recomputeCatAvg(){
   for(const cat of Object.keys(catMonths)){
     const vals=Object.values(catMonths[cat]).sort((a,b)=>a-b);
     if(!vals.length) continue;
-    // Trim top 15% outliers
+    // CAT_AVG: media recortada del 15% superior (meses atípicos)
     const cut=Math.max(1,Math.floor(vals.length*0.85));
     const trimmed=vals.slice(0,cut);
     CAT_AVG[cat]=Math.round(trimmed.reduce((s,v)=>s+v,0)/trimmed.length*100)/100;
+    // FIXED_CATS: mediana del gasto mensual (componente recurrente típico)
+    const mid=Math.floor(vals.length/2);
+    FIXED_CATS[cat]=Math.round((vals.length%2?vals[mid]:(vals[mid-1]+vals[mid])/2)*100)/100;
+  }
+
+  // NOMINA_EST: media recortada de los ingresos mensuales de los últimos 12 meses
+  const incMonths={};
+  for(const r of BANK_ROWS){
+    if(r.Ingreso<=0) continue;
+    const mk=r.Fecha_Op.slice(6)+'-'+r.Fecha_Op.slice(3,5);
+    incMonths[mk]=(incMonths[mk]||0)+r.Ingreso;
+  }
+  const incVals=Object.keys(incMonths).sort().slice(-12).map(k=>incMonths[k]).sort((a,b)=>a-b);
+  if(incVals.length){
+    const cut=Math.max(1,Math.floor(incVals.length*0.85));
+    const tr=incVals.slice(0,cut);
+    NOMINA_EST=Math.round(tr.reduce((s,v)=>s+v,0)/tr.length*100)/100;
   }
 }
 
@@ -2793,7 +2811,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v22 · 2026-05-14 · Gráfico de saldo mensualizado con etiquetas';
+const APP_VERSION = 'v23 · 2026-05-14 · Previsión recalcula FIXED_CATS y nómina desde datos';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
