@@ -1125,16 +1125,26 @@ const CAT_ICONS = {
   'Otros ingresos':'💰','Sin clasificar':'❓'
 };
 
-// Date ranges (hardcoded based on data spanning 2025)
-const TODAY = new Date('2025-12-05');
-const RANGES = [
-  {key:'mes', label:'Este mes', start:new Date('2025-12-01'), end:new Date('2025-12-31')},
-  {key:'30d', label:'Últimos 30 días', start:new Date('2025-11-05'), end:new Date('2025-12-05')},
-  {key:'3m', label:'3 meses', start:new Date('2025-09-05'), end:new Date('2025-12-05')},
-  {key:'6m', label:'6 meses', start:new Date('2025-06-05'), end:new Date('2025-12-05')},
-  {key:'year', label:'Este año', start:new Date('2025-01-01'), end:new Date('2025-12-31')},
-  {key:'all', label:'Todo', start:new Date('2020-01-01'), end:new Date('2030-01-01')},
-];
+// Date ranges — anclados a la fecha del movimiento más reciente
+let TODAY = new Date();
+let RANGES = [];
+function recomputeRanges(){
+  let maxD = null;
+  for(const r of BANK_ROWS){
+    const d = parseDate(r.Fecha_Op);
+    if(d && !isNaN(d) && (!maxD || d > maxD)) maxD = d;
+  }
+  TODAY = maxD || new Date();
+  const y = TODAY.getFullYear(), m = TODAY.getMonth(), d = TODAY.getDate();
+  RANGES = [
+    {key:'mes', label:'Este mes', start:new Date(y,m,1), end:new Date(y,m+1,0)},
+    {key:'30d', label:'Últimos 30 días', start:new Date(y,m,d-30), end:TODAY},
+    {key:'3m', label:'3 meses', start:new Date(y,m-3,d), end:TODAY},
+    {key:'6m', label:'6 meses', start:new Date(y,m-6,d), end:TODAY},
+    {key:'year', label:'Este año', start:new Date(y,0,1), end:new Date(y,11,31)},
+    {key:'all', label:'Todo', start:new Date('2000-01-01'), end:new Date('2100-01-01')},
+  ];
+}
 
 // ═══ MANUAL ENTRIES ══════════════════════════════════════
 function loadManual(){ try{ return JSON.parse(localStorage.getItem('finanzas_manual')||'[]'); }catch(e){return [];} }
@@ -2151,6 +2161,9 @@ function recomputeData(){
   // Update saldo actual
   const lastSaldo = SALDO_DATA.length ? SALDO_DATA[SALDO_DATA.length-1].Saldo : 0;
   window._saldoBase = lastSaldo;
+
+  // Recompute date ranges anchored to latest transaction
+  recomputeRanges();
 
   // Rebuild visible content
   safeRun('buildResumen',      buildResumen);
