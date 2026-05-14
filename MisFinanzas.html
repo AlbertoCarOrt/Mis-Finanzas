@@ -2262,10 +2262,13 @@ function deleteAllManual(){
       if(Array.isArray(data) && data.length){
         BANK_ROWS.length = 0;
         data.forEach(r => BANK_ROWS.push(r));
-        recomputeData();
       }
     }
   } catch(err){ console.error('Error loading stored bank data:', err); }
+  // Recalcular SIEMPRE las constantes derivadas (MONTHLY, MONTHLY_TIPO,
+  // CAT_G_DATA, CAT_I_DATA, SALDO_DATA, CAT_AVG) desde BANK_ROWS — vengan
+  // de localStorage o sean las hardcoded. Así nunca quedan desincronizadas.
+  try { recomputeData(); } catch(err){ console.error('Error en recomputeData inicial:', err); }
 })();
 
 setTimeout(updateLastUpdate, 500);
@@ -2750,7 +2753,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v15 · 2026-05-14 · anillo usa último mes con datos';
+const APP_VERSION = 'v16 · 2026-05-14 · Análisis recalcula desde BANK_ROWS';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
