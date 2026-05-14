@@ -561,12 +561,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 
   <div class="card">
     <div class="card-title">Evolución del saldo</div>
-    <div class="note">⚠ Ago incluye compraventa de vivienda (215.000 €)</div>
     <div class="chart-wrap" style="height:140px"><canvas id="cSaldo" role="img" aria-label="Saldo 2025"></canvas></div>
   </div>
   <div class="card">
     <div class="card-title">Ingresos vs Gastos mensuales</div>
-    <div class="note">⚠ Jul/Ago escalados — máx. visible: 15.000 €</div>
     <div class="chart-wrap" style="height:180px"><canvas id="cMensual" role="img" aria-label="Ingresos y gastos mensuales"></canvas></div>
     <div class="legend">
       <div class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Ingresos</div>
@@ -1232,13 +1230,12 @@ function buildSaldoChart(){
 
 function buildMensualChart(){
   destroyChart('mensual');
-  const cap=15000;
   charts.mensual = new Chart(document.getElementById('cMensual'),{
     type:'bar',
     data:{labels:MONTHLY.map(m=>m.Mes),
       datasets:[
-        {label:'Ingresos',data:MONTHLY.map(m=>Math.min(m.Ingresos,cap)),backgroundColor:'rgba(16,185,129,0.75)',borderRadius:3},
-        {label:'Gastos',data:MONTHLY.map(m=>Math.min(m.Gastos,cap)),backgroundColor:'rgba(244,63,94,0.75)',borderRadius:3}
+        {label:'Ingresos',data:MONTHLY.map(m=>Math.round(m.Ingresos)),backgroundColor:'rgba(16,185,129,0.75)',borderRadius:3},
+        {label:'Gastos',data:MONTHLY.map(m=>Math.round(m.Gastos)),backgroundColor:'rgba(244,63,94,0.75)',borderRadius:3}
       ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €`}}},
@@ -1306,13 +1303,12 @@ function renderAnalisis(){
   });
   destroyChart('acumulado');
   // Cap variable for scale
-  const cap=15000;
   charts.acumulado = new Chart(document.getElementById('cAcumulado'),{
     type:'bar',
     data:{labels:mtData.map(m=>m.Mes),
       datasets:[
-        {label:'Fijos',data:mtData.map(m=>Math.round(Math.min(m.Fijo,cap))),backgroundColor:'#8b5cf6',borderRadius:3,stack:'g'},
-        {label:'Variables',data:mtData.map(m=>Math.round(Math.min(m.Variable,cap))),backgroundColor:'#f97316',borderRadius:3,stack:'g'}
+        {label:'Fijos',data:mtData.map(m=>Math.round(m.Fijo)),backgroundColor:'#8b5cf6',borderRadius:3,stack:'g'},
+        {label:'Variables',data:mtData.map(m=>Math.round(m.Variable)),backgroundColor:'#f97316',borderRadius:3,stack:'g'}
       ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)} €`}}},
@@ -2766,7 +2762,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v18 · 2026-05-14 · Filtros de periodo dinámicos en Análisis';
+const APP_VERSION = 'v19 · 2026-05-14 · Sin anotaciones hardcoded, gráficos sin cap';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
