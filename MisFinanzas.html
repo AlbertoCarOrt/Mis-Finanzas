@@ -1250,12 +1250,15 @@ function buildSaldoChart(){
 
 function buildMensualChart(){
   destroyChart('mensual');
+  // Últimos 12 meses (MONTHLY viene ordenado ascendente por MesKey)
+  const data = MONTHLY.slice(-12);
+  const labels = data.map(m => m.Mes + " '" + m.MesKey.slice(2,4));
   charts.mensual = new Chart(document.getElementById('cMensual'),{
     type:'bar',
-    data:{labels:MONTHLY.map(m=>m.Mes),
+    data:{labels:labels,
       datasets:[
-        {label:'Ingresos',data:MONTHLY.map(m=>Math.round(m.Ingresos)),backgroundColor:'rgba(16,185,129,0.75)',borderRadius:3},
-        {label:'Gastos',data:MONTHLY.map(m=>Math.round(m.Gastos)),backgroundColor:'rgba(244,63,94,0.75)',borderRadius:3}
+        {label:'Ingresos',data:data.map(m=>Math.round(m.Ingresos)),backgroundColor:'rgba(16,185,129,0.75)',borderRadius:3},
+        {label:'Gastos',data:data.map(m=>Math.round(m.Gastos)),backgroundColor:'rgba(244,63,94,0.75)',borderRadius:3}
       ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €`}}},
@@ -2782,7 +2785,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v20 · 2026-05-14 · KPIs de Resumen del año más reciente con datos';
+const APP_VERSION = 'v21 · 2026-05-14 · Gráfico mensual limitado a últimos 12 meses';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
