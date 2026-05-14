@@ -1237,13 +1237,21 @@ function buildResumen(){
 
 function buildSaldoChart(){
   destroyChart('saldo');
+  // Un punto por mes: último saldo de cada mes (SALDO_DATA viene ordenado ascendente)
+  const byMonth = {};
+  for(const s of SALDO_DATA) byMonth[s.Fecha_Op.slice(0,7)] = s.Saldo;
+  const keys = Object.keys(byMonth).sort().slice(-12);
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const labels = keys.map(k => meses[parseInt(k.slice(5,7),10)-1] + " '" + k.slice(2,4));
   charts.saldo = new Chart(document.getElementById('cSaldo'),{
     type:'line',
-    data:{labels:SALDO_DATA.map(s=>s.Fecha_Op.slice(5)),
-      datasets:[{data:SALDO_DATA.map(s=>s.Saldo),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
+    data:{labels:labels,
+      datasets:[{data:keys.map(k=>byMonth[k]),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',fill:true,tension:0.3,pointRadius:2,borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${fmt(c.raw)} €`}}},
-      scales:{x:{display:false},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#64748b',font:{size:10},maxRotation:0}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v}}}
     }
   });
 }
@@ -2785,7 +2793,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v21 · 2026-05-14 · Gráfico mensual limitado a últimos 12 meses';
+const APP_VERSION = 'v22 · 2026-05-14 · Gráfico de saldo mensualizado con etiquetas';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
