@@ -1201,17 +1201,37 @@ function goPage(id,btn){
 // ═══ RESUMEN ═════════════════════════════════════════════
 function buildResumen(){
   const all = getAllRows();
-  const totalI = all.reduce((s,r)=>s+r.Ingreso,0);
-  const totalG = all.reduce((s,r)=>s+r.Gasto,0);
+  // Año más reciente con datos
+  let latestYear = 0;
+  for(const r of all){
+    const y = parseInt(r.Fecha_Op.slice(6),10);
+    if(y > latestYear) latestYear = y;
+  }
+  if(!latestYear) latestYear = new Date().getFullYear();
+  const yearRows = all.filter(r => r.Fecha_Op.slice(6) === String(latestYear));
+
+  const totalI = yearRows.reduce((s,r)=>s+r.Ingreso,0);
+  const totalG = yearRows.reduce((s,r)=>s+r.Gasto,0);
+  let fijo = 0, variable = 0;
+  yearRows.forEach(r=>{
+    if(r.Gasto > 0){
+      if(r.Tipo === 'Fijo') fijo += r.Gasto; else variable += r.Gasto;
+    }
+  });
+
   const manualNet = MANUAL.reduce((s,m)=>s+(m.tipo==='i'?parseFloat(m.importe):-parseFloat(m.importe)),0);
   const lastBank = SALDO_DATA.length ? SALDO_DATA[SALDO_DATA.length-1].Saldo : 0;
   const saldoActual = lastBank + manualNet;
   document.getElementById('saldo-display').textContent = fmt(saldoActual)+' €';
+
+  const subEl = document.getElementById('resumen-sub');
+  if(subEl) subEl.textContent = 'Resumen '+latestYear;
+
   document.getElementById('kpi-grid').innerHTML=`
-    <div class="kpi"><div class="lbl">Total ingresos</div><div class="val g">${fmtK(totalI)} €</div><div class="sub">Año + manuales</div></div>
-    <div class="kpi"><div class="lbl">Total gastos</div><div class="val r">${fmtK(totalG)} €</div><div class="sub">Año + manuales</div></div>
-    <div class="kpi"><div class="lbl">Gastos fijos</div><div class="val fijo-c">${fmtK(TOTALES_TIPO.Fijo)} €</div><div class="sub">Año 2025</div></div>
-    <div class="kpi"><div class="lbl">Gastos variables</div><div class="val var-c">${fmtK(TOTALES_TIPO.Variable)} €</div><div class="sub">Año 2025</div></div>
+    <div class="kpi"><div class="lbl">Total ingresos</div><div class="val g">${fmtK(totalI)} €</div><div class="sub">Año ${latestYear}</div></div>
+    <div class="kpi"><div class="lbl">Total gastos</div><div class="val r">${fmtK(totalG)} €</div><div class="sub">Año ${latestYear}</div></div>
+    <div class="kpi"><div class="lbl">Gastos fijos</div><div class="val fijo-c">${fmtK(fijo)} €</div><div class="sub">Año ${latestYear}</div></div>
+    <div class="kpi"><div class="lbl">Gastos variables</div><div class="val var-c">${fmtK(variable)} €</div><div class="sub">Año ${latestYear}</div></div>
   `;
 }
 
@@ -2762,7 +2782,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v19 · 2026-05-14 · Sin anotaciones hardcoded, gráficos sin cap';
+const APP_VERSION = 'v20 · 2026-05-14 · KPIs de Resumen del año más reciente con datos';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
