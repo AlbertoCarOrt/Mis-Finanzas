@@ -756,6 +756,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     <div class="chart-wrap" style="height:160px"><canvas id="cPlanCmp" role="img" aria-label="Comparativa anual de ahorro entre planes"></canvas></div>
   </div>
 
+  <div class="card">
+    <div class="card-title">Histórico de ahorro mensual</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Ingresos − Gastos reales · últimos 12 meses</div>
+    <div class="chart-wrap" style="height:150px"><canvas id="cHistSaving" role="img" aria-label="Histórico ahorro mensual"></canvas></div>
+    <div id="hist-saving-table" style="margin-top:10px"></div>
+  </div>
+
   <!-- METAS DE AHORRO -->
   <div class="card">
     <div class="card-title">Metas de ahorro</div>
@@ -1754,6 +1761,46 @@ function renderPlan() {
       }
     }
   });
+
+  // ── Histórico de ahorro mensual ──────────────────────────
+  destroyChart('histSaving');
+  const meses12 = MONTHLY.slice(-12);
+  const histLabels = meses12.map(m => m.Mes + " '" + m.MesKey.slice(2,4));
+  const histNet = meses12.map(m => {
+    const net = m.Ingresos - m.Gastos;
+    // Descartar meses con operaciones extraordinarias (>50k)
+    return (Math.abs(m.Ingresos) > 50000 || Math.abs(m.Gastos) > 50000) ? null : Math.round(net);
+  });
+  const histColors = histNet.map(v => v === null ? '#475569' : v >= 0 ? 'rgba(16,185,129,0.8)' : 'rgba(244,63,94,0.8)');
+  charts.histSaving = new Chart(document.getElementById('cHistSaving'), {
+    type: 'bar',
+    data: { labels: histLabels, datasets: [{ data: histNet.map(v => v ?? 0), backgroundColor: histColors, borderRadius: 3 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => histNet[c.dataIndex] === null ? ' Op. especial' : ` ${fmt(c.raw)} €` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 0 } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k€' : v+'€' } }
+      }
+    }
+  });
+
+  // Tabla resumen debajo del gráfico
+  const totalAhorro = histNet.filter(v => v !== null && v > 0).reduce((s,v) => s+v, 0);
+  const totalDeficit = histNet.filter(v => v !== null && v < 0).reduce((s,v) => s+v, 0);
+  const mediaNet = histNet.filter(v => v !== null);
+  const media = mediaNet.length ? Math.round(mediaNet.reduce((s,v)=>s+v,0)/mediaNet.length) : 0;
+  const tableRows = meses12.map((m,i) => {
+    const v = histNet[i];
+    if(v === null) return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text2)">${histLabels[i]}</span><span style="color:var(--text3);font-size:11px">Op. especial</span></div>`;
+    const color = v >= 0 ? 'var(--green)' : 'var(--red)';
+    const sign = v >= 0 ? '+' : '';
+    return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text2)">${histLabels[i]}</span><span style="color:${color};font-weight:600">${sign}${fmt(v)} €</span></div>`;
+  }).join('');
+  document.getElementById('hist-saving-table').innerHTML = tableRows +
+    `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:12px;margin-top:2px">
+       <span style="color:var(--text3)">Media mensual</span><span style="font-weight:700;color:${media>=0?'var(--green)':'var(--red)'}">${media>=0?'+':''}${fmt(media)} €</span>
+     </div>`;
 }
 
 
@@ -2865,7 +2912,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v24 · 2026-05-14 · Importación CSV + refactor _processWorkbook';
+const APP_VERSION = 'v25 · 2026-05-14 · Histórico de ahorro mensual en Plan de ahorro';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
