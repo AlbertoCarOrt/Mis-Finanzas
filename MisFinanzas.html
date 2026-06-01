@@ -872,7 +872,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
     <div class="config-section">
       <h3>📥 Cargar Excel del banco</h3>
       <p>Sube el archivo <code style="background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px">.xlsx/.xlsm</code> exportado de Ibercaja. Se leerá la hoja <strong>"Tabla actualizada"</strong> y se reemplazarán los datos del banco. Tus movimientos manuales se conservan.</p>
-      <input type="file" id="fileExcel" class="file-input" accept=".xlsx,.xlsm,.xls" onchange="handleExcelImport(event)">
+      <input type="file" id="fileExcel" class="file-input" accept=".xlsx,.xlsm,.xls,.csv" onchange="handleExcelImport(event)">
       <button class="config-btn" onclick="document.getElementById('fileExcel').click()">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Seleccionar archivo Excel
@@ -1969,15 +1969,71 @@ function applyConceptoFormula(ccComun, ccPropio, cc1, hasGasto){
 function handleExcelImport(e){
   const file = e.target.files[0];
   if(!file) return;
-  ensureXLSX(ok=>{ if(ok) _doExcelImport(file); });
+  if(/\.csv$/i.test(file.name)) _doCSVImport(file);
+  else ensureXLSX(ok=>{ if(ok) _doExcelImport(file); });
   e.target.value='';
 }
+
+function _parseCSVRows(text){
+  // Detect separator: semicolon, tab or comma
+  const first = text.slice(0, 2000);
+  const sep = first.includes('\t') ? '\t' : first.split(';').length > first.split(',').length ? ';' : ',';
+  return text.split(/\r?\n/).map(line => {
+    if(!line.trim()) return null;
+    // Handle quoted fields
+    const cells = [], re = sep===','
+      ? /("(?:[^"]|"")*"|[^,]*),?/g
+      : new RegExp(`("(?:[^"]|"")*"|[^${sep}]*)${sep}?`,'g');
+    let m;
+    while((m = re.exec(line)) !== null){
+      if(m.index === line.length) break;
+      let v = m[1];
+      if(v.startsWith('"') && v.endsWith('"')) v = v.slice(1,-1).replace(/""/g,'"');
+      cells.push(v.trim());
+    }
+    return cells;
+  }).filter(Boolean);
+}
+
+function _doCSVImport(file){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      const rows = _parseCSVRows(ev.target.result);
+      if(!rows.length){ toast('CSV vacío','error'); return; }
+      // Inject rows into shared XLSX path by faking a single-sheet workbook
+      const fakeSheet = { _c:{}, _R:rows.length, _C:Math.max(...rows.map(r=>r.length)) };
+      rows.forEach((row,ri) => row.forEach((val,ci) => {
+        const key = String.fromCharCode(65+ci)+(ri+1);
+        fakeSheet._c[key] = isNaN(val) || val==='' ? val : parseFloat(val);
+      }));
+      const wb = { SheetNames:['Sheet1'], Sheets:{ Sheet1: fakeSheet } };
+      _processWorkbook(wb, file.name);
+    } catch(err){
+      console.error('[CSV]', err);
+      toast('Error al leer CSV: '+err.message,'error');
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
 function _doExcelImport(file){
   const reader = new FileReader();
   reader.onload = async function(ev){
     try {
       const data = new Uint8Array(ev.target.result);
       const wb = await XLSX.read(data, {type:'array'});
+      _processWorkbook(wb, file.name);
+    } catch(err){
+      console.error('[XLSX]', err);
+      toast('Error al leer el archivo: '+err.message,'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function _processWorkbook(wb, fileName){
+    try {
       console.log('[XLSX] Hojas en el archivo:', wb.SheetNames);
 
       // Try Tabla actualizada first, otherwise fall back to Movimientos (raw bank data)
@@ -2119,8 +2175,6 @@ function _doExcelImport(file){
       console.error(err);
       toast('Error al leer el archivo: ' + err.message, 'error');
     }
-  };
-  reader.readAsArrayBuffer(file);
 }
 
 function recomputeData(){
@@ -2811,7 +2865,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v23 · 2026-05-14 · Previsión recalcula FIXED_CATS y nómina desde datos';
+const APP_VERSION = 'v24 · 2026-05-14 · Importación CSV + refactor _processWorkbook';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
