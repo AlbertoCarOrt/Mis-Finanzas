@@ -426,7 +426,7 @@ input:focus, select:focus{border-color:var(--blue);background:var(--bg4)}
       <div class="btn-row">
         <button class="btn btn-secondary btn-icon" onclick="exportData()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exportar
+          Exportar CSV
         </button>
         <button class="btn btn-danger btn-icon" onclick="resetAll()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
@@ -959,18 +959,112 @@ function renderAll(){
   updateBadges();
 }
 
+function csvField(v){
+  const s = v == null ? '' : String(v);
+  return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function csvNum(n){
+  if(!isFinite(n)) n = 0;
+  return Number(n).toFixed(2).replace('.', ',');
+}
+function csvRow(arr){ return arr.map(csvField).join(';'); }
+
+function buildCSV(){
+  const lines = [];
+  const today = new Date().toISOString().slice(0,10);
+  const [r1, r2] = getRatio();
+  const fijos = totalFijos();
+  const extra = totalExtra();
+  const ahorro = totalAhorro();
+  const total = fijos + extra + ahorro;
+
+  lines.push(csvRow(['GASTOS DE PAREJA', 'Exportación', today]));
+  lines.push('');
+
+  lines.push(csvRow(['SALARIOS']));
+  lines.push(csvRow(['Persona', 'Salario (€)']));
+  lines.push(csvRow([state.name1, csvNum(state.salary1)]));
+  lines.push(csvRow([state.name2, csvNum(state.salary2)]));
+  lines.push(csvRow(['Total ingresos', csvNum(state.salary1 + state.salary2)]));
+  lines.push('');
+
+  lines.push(csvRow(['REPARTO']));
+  lines.push(csvRow(['Modo', state.mode === 'equal' ? '50/50' : 'Proporcional']));
+  lines.push(csvRow([state.name1, (r1*100).toFixed(1) + '%']));
+  lines.push(csvRow([state.name2, (r2*100).toFixed(1) + '%']));
+  lines.push('');
+
+  lines.push(csvRow(['GASTOS FIJOS']));
+  lines.push(csvRow(['Concepto', 'Importe (€)']));
+  FIJOS_BASE.forEach(f => {
+    lines.push(csvRow([f.nombre, csvNum(state.fijos[f.id] || 0)]));
+  });
+  lines.push(csvRow(['Total fijos', csvNum(fijos)]));
+  lines.push('');
+
+  lines.push(csvRow(['GASTOS EXTRAORDINARIOS']));
+  lines.push(csvRow(['Concepto', 'Importe (€)']));
+  if(state.extra.length){
+    state.extra.forEach(e => lines.push(csvRow([e.nombre, csvNum(e.monto)])));
+  }
+  lines.push(csvRow(['Total extraordinarios', csvNum(extra)]));
+  lines.push('');
+
+  lines.push(csvRow(['AHORRO MENSUAL']));
+  lines.push(csvRow(['Objetivo', 'Importe (€)']));
+  const allAhorro = AHORRO_BASE.concat(state.ahorroCustom || []);
+  allAhorro.forEach(a => {
+    lines.push(csvRow([a.nombre, csvNum(state.ahorro[a.id] || 0)]));
+  });
+  lines.push(csvRow(['Total ahorro', csvNum(ahorro)]));
+  lines.push('');
+
+  lines.push(csvRow(['RESUMEN MENSUAL']));
+  lines.push(csvRow(['Concepto', 'Importe (€)']));
+  lines.push(csvRow(['Gastos fijos', csvNum(fijos)]));
+  lines.push(csvRow(['Ahorro mensual', csvNum(ahorro)]));
+  lines.push(csvRow(['Extraordinarios', csvNum(extra)]));
+  lines.push(csvRow(['COSTE TOTAL', csvNum(total)]));
+  lines.push(csvRow(['Aporta ' + state.name1, csvNum(total * r1)]));
+  lines.push(csvRow(['Aporta ' + state.name2, csvNum(total * r2)]));
+  lines.push('');
+
+  lines.push(csvRow(['GASTOS DIARIOS']));
+  lines.push(csvRow(['Fecha', 'Descripción', 'Categoría', 'Importe (€)', 'Pagado por']));
+  const sorted = state.gastos.slice().sort((a,b) => a.fecha.localeCompare(b.fecha));
+  sorted.forEach(g => {
+    const cat = CATEGORIAS.find(c => c.id === g.cat);
+    const pagador = g.pagador === 1 ? state.name1 : state.name2;
+    lines.push(csvRow([g.fecha, g.desc, cat ? cat.nombre : g.cat, csvNum(g.monto), pagador]));
+  });
+  if(sorted.length){
+    let p1 = 0, p2 = 0;
+    sorted.forEach(g => { if(g.pagador === 1) p1 += g.monto; else p2 += g.monto; });
+    lines.push('');
+    lines.push(csvRow(['Pagado por ' + state.name1, csvNum(p1)]));
+    lines.push(csvRow(['Pagado por ' + state.name2, csvNum(p2)]));
+    lines.push(csvRow(['Total gastos diarios', csvNum(p1 + p2)]));
+  }
+
+  return lines.join('\r\n');
+}
+
 function exportData(){
   try{
-    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const csv = buildCSV();
+    const blob = new Blob(['﻿' + csv], {type: 'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `gastos-pareja-${new Date().toISOString().slice(0,10)}.json`;
+    a.download = `gastos-pareja-${new Date().toISOString().slice(0,10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }catch(e){ alert('No se pudo exportar'); }
+  }catch(e){
+    console.error(e);
+    alert('No se pudo exportar el CSV');
+  }
 }
 
 function resetAll(){
