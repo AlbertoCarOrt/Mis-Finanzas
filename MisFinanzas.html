@@ -2408,8 +2408,15 @@ function deleteAllManual(){
     if(stored){
       const data = JSON.parse(stored);
       if(Array.isArray(data) && data.length){
+        // Fusionar: conservar filas del código que caen FUERA del rango de localStorage
+        const dk = r => r.Fecha_Op.slice(6)+r.Fecha_Op.slice(3,5)+r.Fecha_Op.slice(0,2);
+        const sMin = data.reduce((m,r)=>{ const k=dk(r); return k<m?k:m; }, '99999999');
+        const sMax = data.reduce((m,r)=>{ const k=dk(r); return k>m?k:m; }, '00000000');
+        const hardcodedOutside = BANK_ROWS.filter(r=>{ const k=dk(r); return k<sMin||k>sMax; });
+        const merged = [...hardcodedOutside, ...data];
+        merged.sort((a,b)=>dk(b).localeCompare(dk(a)));
         BANK_ROWS.length = 0;
-        data.forEach(r => BANK_ROWS.push(r));
+        merged.forEach(r => BANK_ROWS.push(r));
       }
     }
   } catch(err){ console.error('Error loading stored bank data:', err); }
@@ -2918,7 +2925,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v26 · 2026-05-14 · Import fusiona en vez de reemplazar datos existentes';
+const APP_VERSION = 'v27 · 2026-05-14 · loadStoredBank fusiona localStorage con datos del código';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
