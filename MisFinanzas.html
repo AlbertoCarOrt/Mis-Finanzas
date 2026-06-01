@@ -2200,24 +2200,30 @@ function _processWorkbook(wb, fileName){
 
       const sheetInfo = isRaw ? 'Movimientos (brutos, reclasificados)' : 'Tabla actualizada';
 
-      // Sort by date desc
-      newRows.sort((a,b)=>{
-        const da = a.Fecha_Op.slice(6)+a.Fecha_Op.slice(3,5)+a.Fecha_Op.slice(0,2);
-        const db = b.Fecha_Op.slice(6)+b.Fecha_Op.slice(3,5)+b.Fecha_Op.slice(0,2);
-        return db.localeCompare(da);
-      });
+      // Determinar rango de fechas del archivo importado
+      const dk = r => r.Fecha_Op.slice(6)+r.Fecha_Op.slice(3,5)+r.Fecha_Op.slice(0,2);
+      const importMin = newRows.reduce((m,r)=>{ const k=dk(r); return k<m?k:m; }, '99999999');
+      const importMax = newRows.reduce((m,r)=>{ const k=dk(r); return k>m?k:m; }, '00000000');
 
-      // Save to localStorage and replace BANK_ROWS
-      localStorage.setItem('finanzas_bank_data', JSON.stringify(newRows));
+      // Conservar filas existentes FUERA del rango del archivo (no solapadas)
+      const outside = BANK_ROWS.filter(r=>{ const k=dk(r); return k<importMin||k>importMax; });
+
+      // Combinar y ordenar por fecha descendente
+      const merged = [...outside, ...newRows];
+      merged.sort((a,b)=>dk(b).localeCompare(dk(a)));
+
+      // Save to localStorage and update BANK_ROWS
+      localStorage.setItem('finanzas_bank_data', JSON.stringify(merged));
       localStorage.setItem('finanzas_bank_updated', new Date().toISOString());
 
       BANK_ROWS.length = 0;
-      newRows.forEach(r => BANK_ROWS.push(r));
+      merged.forEach(r => BANK_ROWS.push(r));
 
       // Recompute everything
       recomputeData();
       updateLastUpdate();
-      toast(`✓ ${imported} movimientos importados desde ${sheetInfo}`, 'success');
+      const kept = outside.length ? ` + ${outside.length} previos conservados` : '';
+      toast(`✓ ${imported} importados${kept} (${merged.length} total)`, 'success');
     } catch(err){
       console.error(err);
       toast('Error al leer el archivo: ' + err.message, 'error');
@@ -2912,7 +2918,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v25 · 2026-05-14 · Histórico de ahorro mensual en Plan de ahorro';
+const APP_VERSION = 'v26 · 2026-05-14 · Import fusiona en vez de reemplazar datos existentes';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
