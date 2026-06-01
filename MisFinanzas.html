@@ -1228,7 +1228,12 @@ function buildResumen(){
   });
 
   const manualNet = MANUAL.reduce((s,m)=>s+(m.tipo==='i'?parseFloat(m.importe):-parseFloat(m.importe)),0);
-  const lastBank = SALDO_DATA.length ? SALDO_DATA[SALDO_DATA.length-1].Saldo : 0;
+  // Read saldo directly from BANK_ROWS (sorted desc → first non-null entry is most recent)
+  let lastBank = 0;
+  for(const r of BANK_ROWS){
+    if(r.Saldo != null && !isNaN(r.Saldo) && r.Saldo > 0){ lastBank = r.Saldo; break; }
+  }
+  if(lastBank === 0 && SALDO_DATA.length) lastBank = SALDO_DATA[SALDO_DATA.length-1].Saldo;
   const saldoActual = lastBank + manualNet;
   document.getElementById('saldo-display').textContent = fmt(saldoActual)+' €';
 
@@ -2417,6 +2422,8 @@ function deleteAllManual(){
         merged.sort((a,b)=>dk(b).localeCompare(dk(a)));
         BANK_ROWS.length = 0;
         merged.forEach(r => BANK_ROWS.push(r));
+        // Persist the complete merged dataset so next load starts from a clean state
+        try { localStorage.setItem('finanzas_bank_data', JSON.stringify(merged)); } catch(_){}
       }
     }
   } catch(err){ console.error('Error loading stored bank data:', err); }
@@ -2925,7 +2932,7 @@ function resetTotal(){
   toast('Reset completo. Recargando...', 'success');
   setTimeout(()=>location.reload(), 1200);
 }
-const APP_VERSION = 'v27 · 2026-05-14 · loadStoredBank fusiona localStorage con datos del código';
+const APP_VERSION = 'v28 · 2026-06-01 · saldo leído desde BANK_ROWS directo; localStorage persiste tras fusión';
 function renderDiagPanel(){
   const panel = document.getElementById('diag-panel');
   if(!panel) return;
